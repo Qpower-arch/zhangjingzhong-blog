@@ -14,7 +14,7 @@ export const siteConfig = {
   // 备案号/版权行（可留空）
   copyright: '© 2025 张静中',
   // GitHub 用户名（用于社交链接，可留空隐藏）
-  github: '',
+  github: 'Qpower-arch',
   // 语言
   lang: 'zh-CN',
 };

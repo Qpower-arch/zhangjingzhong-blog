@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://your-name.github.io/my-blog',
+  site: 'https://qpower-arch.github.io/zhangjingzhong-blog',
   // 若将来部署到 Cloudflare Pages / Vercel，把 site 换成你的正式域名
   output: 'static',
   integrations: [sitemap()],
