@@ -35,6 +35,31 @@ const featuredResources = (await getCollection('resources'))
 
   <TriSearch compact />
 
+  <!-- 网站功能快捷入口：让用户一眼直达各板块 -->
+  <h2 class="section-title"><span>🗂️ 功能导航</span></h2>
+  <div class="quick-nav">
+    <a class="quick-card" href={withBase('/blog')}>
+      <span class="quick-icon">📖</span>
+      <span class="quick-title">文章</span>
+      <span class="quick-desc">阅读全部文章与教程</span>
+    </a>
+    <a class="quick-card" href={withBase('/tools')}>
+      <span class="quick-icon">🧰</span>
+      <span class="quick-title">学习工具</span>
+      <span class="quick-desc">电脑测试工具箱</span>
+    </a>
+    <a class="quick-card" href={withBase('/resources')}>
+      <span class="quick-icon">📦</span>
+      <span class="quick-title">软件资源</span>
+      <span class="quick-desc">好用的软件整理</span>
+    </a>
+    <a class="quick-card" href={withBase('/search')}>
+      <span class="quick-icon">🔍</span>
+      <span class="quick-title">搜索</span>
+      <span class="quick-desc">站内全文搜索</span>
+    </a>
+  </div>
+
   <h2 class="section-title">
     <span>🆕 最新文章</span>
     <a class="muted" style="font-size:.9rem; font-weight:400" href={withBase('/blog')}>查看全部 →</a>
