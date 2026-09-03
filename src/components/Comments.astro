@@ -8,6 +8,8 @@ interface Props {
 const { slug, title } = Astro.props;
 
 // 判断当前启用哪种评论
+const useWaline =
+  commentConfig.provider === 'waline' && commentConfig.walineServer !== '';
 const useArtalk =
   commentConfig.provider === 'artalk' && commentConfig.artalkServer !== '';
 const useGiscus =
@@ -15,7 +17,7 @@ const useGiscus =
   commentConfig.repo !== '' &&
   commentConfig.repoId !== '' &&
   commentConfig.categoryId !== '';
-const anyEnabled = useArtalk || useGiscus;
+const anyEnabled = useWaline || useArtalk || useGiscus;
 ---
 
 <section class="comments" data-comments-section data-slug={slug}>
@@ -28,16 +30,17 @@ const anyEnabled = useArtalk || useGiscus;
           📌 评论功能尚未启用。当前为占位提示。
         </p>
         <p style="margin:0">
-          接入步骤见项目根目录 <code>DEPLOY_ARTALK.md</code>：部署 Artalk
-          评论服务后，把服务器地址填入 <code>src/site.config.ts</code> 的
-          <code>commentConfig.artalkServer</code>，重新部署即可生效。
-          支持邮箱验证码登录、仅登录可评论、站长管理后台。
+          将评论服务地址填入 <code>src/site.config.ts</code> 的
+          <code>commentConfig.walineServer</code>，重新部署即可生效。
         </p>
       </div>
     )
   }
 
-  <!-- Artalk 挂载点 -->
+  <!-- Waline 挂载点 -->
+  {useWaline && <div class="card" id="waline-container"></div>}
+
+  <!-- Artalk 挂载点（备选） -->
   {useArtalk && <div class="card" id="artalk-comments"></div>}
 
   <!-- Giscus 挂载点（备选） -->
@@ -45,9 +48,60 @@ const anyEnabled = useArtalk || useGiscus;
 </section>
 
 {
+  useWaline && (
+    <script define:vars={{ walineServer: commentConfig.walineServer, pageKey: slug }}>
+      // Waline 加载：用 CDN 引入前端组件
+      function initWaline() {
+        const container = document.getElementById('waline-container');
+        if (!container || (window as any).__walineInited) return;
+        (window as any).__walineInited = true;
+
+        // 加载 Waline CSS
+        if (!document.getElementById('waline-css')) {
+          const css = document.createElement('link');
+          css.id = 'waline-css';
+          css.rel = 'stylesheet';
+          css.href = 'https://unpkg.com/@waline/client@v3/dist/waline.css';
+          document.head.appendChild(css);
+        }
+
+        // 加载 Waline JS
+        if ((window as any).Waline) {
+          mountWaline();
+        } else {
+          const s = document.createElement('script');
+          s.src = 'https://unpkg.com/@waline/client@v3/dist/waline.js';
+          s.async = true;
+          s.onload = mountWaline;
+          document.body.appendChild(s);
+        }
+
+        function mountWaline() {
+          new (window as any).Waline({
+            el: '#waline-container',
+            serverURL: walineServer,
+            path: pageKey,
+            meta: ['nick', 'mail'],
+            requiredMeta: ['nick'],
+            login: 'enable', // 邮箱注册/登录后可评论
+            dark: 'auto',
+            imageUploader: false,
+            pageview: false,
+          });
+        }
+      }
+
+      // 等文档就绪后初始化
+      if (document.readyState === 'complete') initWaline();
+      else window.addEventListener('load', initWaline);
+    </script>
+  )
+}
+
+{
   useArtalk && (
     <script is:inline>
-      // Artalk 前端加载：改 site.config.ts 即可，无需动这里
+      // Artalk 前端加载（备选方案）
       const artalkServer = '{commentConfig.artalkServer}';
       const artalkSite = '{commentConfig.artalkSite}';
       const pageKey = '{slug}';
@@ -56,7 +110,6 @@ const anyEnabled = useArtalk || useGiscus;
       function loadArtalk() {
         const container = document.getElementById('artalk-comments');
         if (!container) return;
-        // 加载 Artalk CSS + JS（静态资源走 CDN）
         if (!document.getElementById('artalk-css')) {
           const css = document.createElement('link');
           css.id = 'artalk-css';
@@ -86,10 +139,7 @@ const anyEnabled = useArtalk || useGiscus;
           server: artalkServer,
           site: artalkSite,
           darkMode: document.documentElement.getAttribute('data-theme') === 'dark',
-          // 强制登录后才可评论（配合服务端 trust 配置）
-          // 具体以后端 artalk.yml 设置为准
         });
-        // 监听主题切换，同步 Artalk 暗色模式
         const mo = new MutationObserver(() => {
           const dark = document.documentElement.getAttribute('data-theme') === 'dark';
           if (artalk) artalk.setDarkMode(dark);
@@ -98,7 +148,6 @@ const anyEnabled = useArtalk || useGiscus;
       }
 
       window.addEventListener('load', loadArtalk);
-      // SPA/立即执行兜底
       if (document.readyState === 'complete') loadArtalk();
     </script>
   )

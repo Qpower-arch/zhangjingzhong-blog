@@ -22,16 +22,14 @@ export const siteConfig = {
 // =====================================================
 // 评论系统配置
 //
-// 【当前方案】Artalk —— 自托管评论系统（推荐）
-//   支持：邮箱验证码登录、仅登录可评论、站长管理后台
-//   部署：见项目根目录 DEPLOY_ARTALK.md 手册
-//   完成后把 server 和 site 填到下面即可：
+// 【当前方案】Waline —— 自托管评论系统（推荐）
+//   支持：邮箱验证码登录、仅登录可评论、站长管理后台、邮件通知
+//   后端已在服务器 arttalk.qpower.icu 部署完成
 //
-//   export const commentConfig = {
-//     provider: 'artalk',
-//     server: 'https://你的artalk服务地址',  // 例如 https://artalk-xxx.zeabur.app
-//     site: '张静中的博客',                  // 与你部署时设置的 site 同名
-//   };
+// export const commentConfig = {
+//   provider: 'waline',
+//   walineServer: 'https://arttalk.qpower.icu',
+// };
 //
 // 【备选】Giscus（GitHub Discussions）：
 //   1. GitHub 仓库 Settings → Features 开启 Discussions
@@ -39,9 +37,11 @@ export const siteConfig = {
 //   3. 到 https://giscus.app 生成 repo/repoId/categoryId
 // =====================================================
 export const commentConfig = {
-  provider: 'artalk' as 'artalk' | 'giscus' | 'none',
-  // --- Artalk 配置（填好后评论即可用）---
-  artalkServer: '', // 例：'https://artalk-xxx.zeabur.app'
+  provider: 'waline' as 'waline' | 'artalk' | 'giscus' | 'none',
+  // --- Waline 配置（填好后评论即可用）---
+  walineServer: 'https://arttalk.qpower.icu',
+  // --- Artalk 配置（备选方案）---
+  artalkServer: '', // 例：'https://arttalk-xxx.zeabur.app'
   artalkSite: '张静中的博客',
   // --- Giscus 配置（备选方案）---
   repo: '',
