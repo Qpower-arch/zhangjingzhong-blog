@@ -1,5 +1,6 @@
 ---
 import { siteConfig } from '../site.config';
+import { withBase } from '../lib/base';
 
 interface Props {
   currentPath: string;
@@ -7,7 +8,6 @@ interface Props {
 const { currentPath } = Astro.props;
 
 const links = [
-  { href: '/', label: '首页' },
   { href: '/blog', label: '文章' },
   { href: '/progress', label: '学习进度' },
   { href: '/resources', label: '软件资源' },
@@ -15,21 +15,21 @@ const links = [
 ];
 
 function isActive(href: string, path: string): boolean {
-  if (href === '/') return path === '/';
   return path.startsWith(href);
 }
 ---
 
 <header class="site-header">
   <div class="container header-inner">
-    <a href="/" class="logo">
-      <span>{siteConfig.shortName[0]}</span>{siteConfig.shortName.slice(1)}
+    <a href={withBase('/')} class="logo">
+      <span class="logo-icon">{siteConfig.shortName[0]}</span>
+      <span>{siteConfig.shortName}</span>
     </a>
     <nav class="nav">
       {
         links.map((l) => (
           <a
-            href={l.href}
+            href={withBase(l.href)}
             class:list={[{ active: isActive(l.href, currentPath) }]}
           >
             {l.label}

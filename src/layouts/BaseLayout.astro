@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { siteConfig } from '../site.config';
+import { withBase } from '../lib/base';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
@@ -18,6 +19,7 @@ const {
 } = Astro.props;
 
 const pageTitle = title === siteConfig.name ? title : `${title} | ${siteConfig.name}`;
+// canonical 需要完整含 base 的绝对 URL，直接用配置的 site + 当前路径
 const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost:4321');
 const isHome = Astro.url.pathname === '/';
 ---
@@ -30,13 +32,13 @@ const isHome = Astro.url.pathname === '/';
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <link
       rel="alternate"
       type="application/rss+xml"
       title={siteConfig.name}
-      href="/rss.xml"
+      href={withBase('/rss.xml')}
     />
     <!-- 主题初始化：避免刷新闪白 -->
     <script is:inline>

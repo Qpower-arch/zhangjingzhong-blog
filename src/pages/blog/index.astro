@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { formatDate } from '../../lib/dates';
+import { withBase } from '../../lib/base';
 
 // 支持 ?tag=xxx 过滤；分类也按标签形式暴露
 const tag = Astro.url.searchParams.get('tag');
@@ -26,12 +27,12 @@ const allTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]);
   <h1>📚 全部文章</h1>
 
   <div class="tags" style="margin: 16px 0;">
-    <a class:list={['tag', !tag && 'tag-accent']} href="/blog">全部</a>
+    <a class:list={['tag', !tag && 'tag-accent']} href={withBase('/blog')}>全部</a>
     {
       allTags.map(([t, n]) => (
         <a
           class:list={['tag', tag === t && 'tag-accent']}
-          href={`/blog?tag=${encodeURIComponent(t)}`}
+          href={withBase(`/blog?tag=${encodeURIComponent(t)}`)}
         >
           {t} ({n})
         </a>
@@ -43,7 +44,7 @@ const allTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]);
     tag && (
       <p class="muted">
         正在筛选标签：<span class="tag tag-accent">{tag}</span>{' '}
-        <a href="/blog">（清除筛选）</a>
+        <a href={withBase('/blog')}>（清除筛选）</a>
       </p>
     )
   }
@@ -57,14 +58,14 @@ const allTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]);
           posts.map((post) => (
             <article class="post-item">
               <h3>
-                <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+                <a href={withBase(`/blog/${post.id}/`)}>{post.data.title}</a>
               </h3>
               <p class="post-excerpt">{post.data.description}</p>
               <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
                 <div class="tags" style="margin:0;">
                   {
                     post.data.tags.slice(0, 5).map((t) => (
-                      <a class="tag" href={`/blog?tag=${encodeURIComponent(t)}`}>{t}</a>
+                      <a class="tag" href={withBase(`/blog?tag=${encodeURIComponent(t)}`)}>{t}</a>
                     ))
                   }
                 </div>

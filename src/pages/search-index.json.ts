@@ -1,5 +1,6 @@
 // 构建期生成 /search-index.json，供前端搜索页使用
 import { getCollection } from 'astro:content';
+import { withBase } from '../lib/base';
 
 export async function GET() {
   const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
@@ -13,7 +14,7 @@ export async function GET() {
     category: p.data.category,
     tags: p.data.tags,
     pubDate: p.data.pubDate.toISOString().slice(0, 10),
-    url: `/blog/${p.id}/`,
+    url: withBase(`/blog/${p.id}/`),
     // 加入正文文本（去掉 frontmatter 与 markdown 符号），用于全文搜索
     body: (p.body ?? '').replace(/^---[\s\S]*?---/, '').replace(/[#*`>_\[\]()!-]/g, ' ').slice(0, 3000),
   }));

@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { formatDate } from '../lib/dates';
+import { withBase } from '../lib/base';
 import { siteConfig } from '../site.config';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
@@ -19,35 +20,35 @@ const featuredResources = (await getCollection('resources'))
 
 <BaseLayout wide>
   <section class="hero">
-    <h1>👋 你好，我是 {siteConfig.author}</h1>
+    <h1>👋 你好，我是 <span class="grad">{siteConfig.author}</span></h1>
     <p class="hero-greet">
       {siteConfig.description} 这里是我的自留地：用文章记录走过的路，
       用时间线追踪学习进度，把好用的软件资源整理成册。
     </p>
-    <p style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
-      <a class="btn btn-primary" href="/blog">📖 阅读文章</a>
-      <a class="btn" href="/progress">📈 学习进度</a>
-      <a class="btn" href="/resources">📦 软件资源</a>
-    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href={withBase('/blog')}>📖 阅读文章</a>
+      <a class="btn" href={withBase('/progress')}>📈 学习进度</a>
+      <a class="btn" href={withBase('/resources')}>📦 软件资源</a>
+    </div>
   </section>
 
   <h2 class="section-title">
     <span>🆕 最新文章</span>
-    <a class="muted" style="font-size:.9rem; font-weight:400" href="/blog">查看全部 →</a>
+    <a class="muted" style="font-size:.9rem; font-weight:400" href={withBase('/blog')}>查看全部 →</a>
   </h2>
   <div class="post-list">
     {
       posts.map((post) => (
         <article class="post-item">
           <h3>
-            <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+            <a href={withBase(`/blog/${post.id}/`)}>{post.data.title}</a>
           </h3>
           <p class="post-excerpt">{post.data.description}</p>
           <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
             <div class="tags" style="margin:0;">
               {
                 post.data.tags.slice(0, 4).map((t) => (
-                  <a class="tag" href={`/blog?tag=${encodeURIComponent(t)}`}>{t}</a>
+                  <a class="tag" href={withBase(`/blog?tag=${encodeURIComponent(t)}`)}>{t}</a>
                 ))
               }
             </div>
@@ -62,7 +63,7 @@ const featuredResources = (await getCollection('resources'))
 
   <h2 class="section-title">
     <span>📈 学习进度（最近）</span>
-    <a class="muted" style="font-size:.9rem; font-weight:400" href="/progress">完整时间线 →</a>
+    <a class="muted" style="font-size:.9rem; font-weight:400" href={withBase('/progress')}>完整时间线 →</a>
   </h2>
   <div class="timeline">
     {
@@ -82,7 +83,7 @@ const featuredResources = (await getCollection('resources'))
 
   <h2 class="section-title">
     <span>📦 精选资源</span>
-    <a class="muted" style="font-size:.9rem; font-weight:400" href="/resources">全部资源 →</a>
+    <a class="muted" style="font-size:.9rem; font-weight:400" href={withBase('/resources')}>全部资源 →</a>
   </h2>
   <div class="post-list">
     {

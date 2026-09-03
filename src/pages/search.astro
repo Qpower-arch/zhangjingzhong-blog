@@ -36,9 +36,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   let index: PostIndex[] = [];
   const MAX_SHOW = 30;
 
+  // Astro 的 base（GitHub Pages 子路径）由构建时注入，避免硬编码绝对路径
+  const BASE = (import.meta as any).env?.BASE_URL ?? '/';
+  const INDEX_URL = `${BASE}search-index.json`;
+
   async function loadIndex() {
     try {
-      const res = await fetch('/search-index.json');
+      const res = await fetch(INDEX_URL);
       index = (await res.json()) as PostIndex[];
       // 如果 URL 带 ?q= 参数，自动填入并搜索
       const q = new URLSearchParams(location.search).get('q');
