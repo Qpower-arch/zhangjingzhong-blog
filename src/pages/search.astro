@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+// 构建时把 base 前缀注入脚本，避免客户端拼接缺斜杠
+const base = '/zhangjingzhong-blog';
 ---
 
 <BaseLayout title="搜索" description="站内全文搜索">
@@ -17,7 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <div class="post-list" id="search-results"></div>
 </BaseLayout>
 
-<script>
+<script define:vars={{ base }}>
   interface PostIndex {
     slug: string;
     title: string;
@@ -36,9 +38,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   let index: PostIndex[] = [];
   const MAX_SHOW = 30;
 
-  // Astro 的 base（GitHub Pages 子路径）由构建时注入，避免硬编码绝对路径
-  const BASE = (import.meta as any).env?.BASE_URL ?? '/';
-  const INDEX_URL = `${BASE}search-index.json`;
+  // 用注入的 base 前缀拼索引地址，确保斜杠正确
+  const INDEX_URL = `${base}/search-index.json`;
 
   async function loadIndex() {
     try {
