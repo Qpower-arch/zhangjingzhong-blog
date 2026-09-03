@@ -3,15 +3,16 @@
 // =====================================================
 
 export const siteConfig = {
-  // 站点名称（导航/页脚显示）
-  name: '我的博客',
-  shortName: 'MyBlog',
+  // 站点名称（浏览器标题/SEO 用完整站名）
+  name: '张静中的博客',
+  // 导航 logo 短名（首字高亮显示）
+  shortName: '张静中的博客',
   // 一句话简介
   description: '记录学习进度，分享软件资源与折腾心得。',
   // 作者署名
-  author: '博主',
+  author: '张静中',
   // 备案号/版权行（可留空）
-  copyright: '© 2025 MyBlog',
+  copyright: '© 2025 张静中',
   // GitHub 用户名（用于社交链接，可留空隐藏）
   github: '',
   // 语言
