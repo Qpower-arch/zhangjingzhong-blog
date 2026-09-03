@@ -5,10 +5,13 @@ import TriSearch from '../components/TriSearch.astro';
 
 // 需要外部数据/服务的工具——导航卡片（跳转到国内可访问的可靠站点，均已验证可达）
 const externalTools = [
-  { icon: '🎮', name: '显卡天梯图', desc: 'GPU 性能排行榜', url: 'https://gpu.exprank.com/', color: 'green' },
+  { icon: '🖥️', name: '屏幕坏点检测', desc: '全屏纯色，找亮点/暗点/坏点', url: 'https://screen.bmcx.com/#welcome', color: 'blue' },
+  { icon: '⚡', name: '刷新率测试', desc: '测显示器实际刷新率', url: 'https://test.ustc.edu.cn/', color: 'violet' },
+  { icon: '🧪', name: '网速测试', desc: '测宽带上传/下载/延迟', url: 'https://test.ustc.edu.cn/', color: 'green' },
+  { icon: '🖱️', name: '鼠标测试', desc: '检测左右键与滚轮', url: 'https://testmouse.com/zh', color: 'orange' },
+  { icon: '🎮', name: '显卡天梯图', desc: 'GPU 性能排行榜', url: 'https://gpu.exprank.com/', color: 'red' },
   { icon: '🧠', name: 'CPU天梯图', desc: 'CPU 性能排行榜', url: 'https://cpu.exprank.com/', color: 'violet' },
   { icon: '🖼️', name: '高清壁纸', desc: '4K 高清壁纸下载', url: 'https://haowallpaper.com/', color: 'orange' },
-  { icon: '🧪', name: '网速测试', desc: '测速网：上传/下载/延迟', url: 'https://www.speedtest.cn/', color: 'blue' },
   { icon: '🕹️', name: '手柄测试', desc: 'Gamepad 手柄状态检测', url: 'https://hardwaretester.com/gamepad', color: 'red' },
 ];
 ---
@@ -23,30 +26,10 @@ const externalTools = [
   <!-- ============ 纯前端真工具 ============ -->
   <h2 class="section-title"><span>⚡ 在线测试工具</span></h2>
   <div class="tool-grid">
-    <button class="tool-card" data-tool="badpixel" type="button">
-      <span class="tool-icon">🖥️</span>
-      <span class="tool-name">屏幕坏点检测</span>
-      <span class="tool-desc">全屏纯色，找亮点/暗点/坏点</span>
-    </button>
-    <button class="tool-card" data-tool="refresh" type="button">
-      <span class="tool-icon">⚡</span>
-      <span class="tool-name">刷新率测试</span>
-      <span class="tool-desc">测显示器实际刷新率</span>
-    </button>
     <button class="tool-card" data-tool="keyboard" type="button">
       <span class="tool-icon">⌨️</span>
       <span class="tool-name">键盘测试</span>
       <span class="tool-desc">检测每个按键是否正常</span>
-    </button>
-    <button class="tool-card" data-tool="mouse" type="button">
-      <span class="tool-icon">🖱️</span>
-      <span class="tool-name">鼠标测试</span>
-      <span class="tool-desc">检测左右键与滚轮</span>
-    </button>
-    <button class="tool-card" data-tool="power" type="button">
-      <span class="tool-icon">🔋</span>
-      <span class="tool-name">整机功耗估算</span>
-      <span class="tool-desc">估算主机功耗与建议电源</span>
     </button>
   </div>
 
@@ -72,64 +55,13 @@ const externalTools = [
 </BaseLayout>
 
 <script>
-  // ============ 工具弹层 ============
-  const tools: Record<string, string> = {
-    badpixel: 'badpixel-tool',
-    refresh: 'refresh-tool',
-    keyboard: 'keyboard-tool',
-    mouse: 'mouse-tool',
-    power: 'power-tool',
-  };
-
-  // 动态创建各工具面板
+  // ============ 工具弹层（仅键盘测试为本地实现，其余已改为外链） ============
   const PANELS: Record<string, { title: string; html: string }> = {
-    badpixel: {
-      title: '屏幕坏点检测',
-      html: `
-        <p class="muted">点击下方色块进入全屏，Esc 退出。全屏后移动鼠标看是否有不显示的坏点。</p>
-        <div class="bpx-colors">
-          <button class="bpx-color" style="background:#000" data-bpx="#000">黑</button>
-          <button class="bpx-color" style="background:#fff;color:#000" data-bpx="#fff">白</button>
-          <button class="bpx-color" style="background:#f00" data-bpx="#f00">红</button>
-          <button class="bpx-color" style="background:#0f0" data-bpx="#0f0">绿</button>
-          <button class="bpx-color" style="background:#00f" data-bpx="#00f">蓝</button>
-        </div>
-        <div class="bpx-hint">全屏后：按 <b>1-5</b> 快速切色，<b>Esc</b> 退出</div>`,
-    },
-    refresh: {
-      title: '刷新率测试',
-      html: `
-        <p class="muted">点击开始后，这里会快速闪烁。计满一秒内的闪烁次数即约等于刷新率。</p>
-        <button class="btn btn-primary" id="refresh-start">▶ 开始测试</button>
-        <p style="font-size:2.5rem; margin:16px 0 0;" id="refresh-count">--</p>
-        <p class="muted" style="font-size:.8rem;">结果仅供参考，请用专业软件复核</p>`,
-    },
     keyboard: {
       title: '键盘测试',
       html: `
         <p class="muted">按下任意按键，会显示按键码。按住不放可以测试是否粘连。</p>
         <div class="kb-stage" id="kb-stage">等待按键…</div>`,
-    },
-    mouse: {
-      title: '鼠标测试',
-      html: `
-        <p class="muted">在下方区域点击左键/右键、滚动滚轮测试。</p>
-        <div class="mouse-stage" id="mouse-stage">
-          <span id="mouse-info">点击我试试</span>
-        </div>`,
-    },
-    power: {
-      title: '整机功耗估算',
-      html: `
-        <p class="muted">估算典型整机功耗，供选购电源参考。</p>
-        <div class="power-form">
-          <label><input type="checkbox" data-w="250"> 中高端CPU（如i7/R7）
-          </label><label><input type="checkbox" data-w="180"> 高性能显卡（如RTX3070）
-          </label><label><input type="checkbox" data-w="30"> 双内存+SSD
-          </label><label><input type="checkbox" data-w="60"> 3块机械硬盘/风扇多
-          </label><hr>
-          <p>估算<span class="power-total">0</span>W，建议电源 ≥ <span class="power-psu">0</span>W</p>
-        </div>`,
     },
   };
 
@@ -166,40 +98,9 @@ const externalTools = [
     initTool(name, overlay);
   }
 
-  // 各工具初始化
+  // 工具初始化
   function initTool(name: string, overlay: HTMLElement) {
-    if (name === 'badpixel') {
-      overlay.querySelectorAll<HTMLElement>('.bpx-color').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const color = btn.dataset.bpx!;
-          enterFullscreenColor(color, overlay);
-        });
-      });
-    } else if (name === 'refresh') {
-      let running = false;
-      const box = overlay.querySelector('#refresh-count') as HTMLElement;
-      const startBtn = overlay.querySelector('#refresh-start') as HTMLElement;
-      startBtn.addEventListener('click', () => {
-        if (running) return;
-        running = true;
-        box.style.transition = 'none';
-        let frames = 0;
-        const t0 = performance.now();
-        const tick = () => {
-          frames++;
-          box.textContent = (frames / ((performance.now() - t0) / 1000)).toFixed(0) + ' FPS';
-          // 视觉闪烁：颜色交替
-          box.style.color = (Math.floor(performance.now() / 200) % 2) ? 'var(--accent)' : 'var(--fg)';
-          if (performance.now() - t0 < 2000) requestAnimationFrame(tick);
-          else {
-            running = false;
-            const fps = frames / ((performance.now() - t0) / 1000);
-            box.textContent = '≈ ' + fps.toFixed(0) + ' Hz（基于RAF计时）';
-          }
-        };
-        requestAnimationFrame(tick);
-      });
-    } else if (name === 'keyboard') {
+    if (name === 'keyboard') {
       const stage = overlay.querySelector('#kb-stage') as HTMLElement;
       const handler = (e: KeyboardEvent) => {
         e.preventDefault();
@@ -212,45 +113,7 @@ const externalTools = [
         if (typeof prevCleanup === 'function') prevCleanup();
         document.removeEventListener('keydown', handler);
       };
-    } else if (name === 'mouse') {
-      const stage = overlay.querySelector('#mouse-stage') as HTMLElement;
-      const info = overlay.querySelector('#mouse-info') as HTMLElement;
-      const log = (t: string) => { info.textContent = t; stage.classList.remove('clicked'); void stage.offsetWidth; stage.classList.add('clicked'); };
-      stage.addEventListener('mousedown', (e) => log(e.button === 0 ? '左键 ✅' : '右键 ✅'));
-      stage.addEventListener('click', (e) => log(e.button === 0 ? '左键点击 ✅' : ''));
-      stage.addEventListener('wheel', (e) => log(e.deltaY < 0 ? '滚轮上滚 ✅' : '滚轮下滚 ✅'));
-    } else if (name === 'power') {
-      const total = overlay.querySelector('.power-total') as HTMLElement;
-      const psu = overlay.querySelector('.power-psu') as HTMLElement;
-      const boxes = overlay.querySelectorAll<HTMLInputElement>('input[data-w]');
-      const update = () => {
-        let w = 0;
-        boxes.forEach((b) => { if (b.checked) w += Number(b.dataset.w); });
-        total.textContent = String(w);
-        psu.textContent = String(w ? Math.ceil(w * 1.5 / 50) * 50 : 0);
-      };
-      boxes.forEach((b) => b.addEventListener('change', update));
     }
-  }
-
-  function enterFullscreenColor(color: string, overlay: HTMLElement) {
-    const existing = document.getElementById('fullscreen-color');
-    if (existing) existing.remove();
-    const layer = document.createElement('div');
-    layer.id = 'fullscreen-color';
-    layer.style.cssText = 'position:fixed;inset:0;z-index:999999;cursor:none;background:' + color;
-    document.body.appendChild(layer);
-    const keyHandler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { layer.remove(); document.removeEventListener('keydown', keyHandler); }
-      const map: Record<string, string> = { '1': '#000', '2': '#fff', '3': '#f00', '4': '#0f0', '5': '#00f' };
-      if (map[e.key]) layer.style.background = map[e.key];
-    };
-    document.addEventListener('keydown', keyHandler);
-    // 提示
-    const tip = document.createElement('div');
-    tip.textContent = '颜色：黑|白|红|绿|蓝  按1-5切换  Esc退出';
-    tip.style.cssText = 'position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:6px 14px;border-radius:999px;font-size:.85rem;';
-    layer.appendChild(tip);
   }
 
   document.querySelectorAll<HTMLElement>('.tool-card[data-tool]').forEach((card) => {
@@ -335,28 +198,10 @@ const externalTools = [
   }
   .tool-modal-body { padding: 20px; }
 
-  /* 坏点 */
-  .bpx-colors { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
-  .bpx-color { width: 56px; height: 56px; border-radius: 10px; border: 2px solid var(--border); cursor: pointer; }
-  .bpx-hint { font-size: .8rem; color: var(--fg-muted); }
-
   /* 键盘 */
   .kb-stage {
     min-height: 120px; border: 2px dashed var(--border);
     border-radius: 10px; display: flex; align-items: center;
     justify-content: center; font-size: 1.2rem; color: var(--fg-muted);
   }
-  /* 鼠标 */
-  .mouse-stage {
-    min-height: 140px; border: 2px dashed var(--border);
-    border-radius: 10px; display: flex; align-items: center;
-    justify-content: center; cursor: pointer;
-    transition: transform .1s;
-  }
-  .mouse-stage.clicked { transform: scale(.96); border-color: var(--accent); }
-  /* 功耗 */
-  .power-form label { display: flex; gap: 8px; align-items: center; padding: 8px 0; cursor: pointer; }
-  .power-form hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
-  .power-form p { font-size: 1.05rem; }
-  .power-total, .power-psu { color: var(--accent); font-weight: 800; font-size: 1.3rem; }
 </style>
