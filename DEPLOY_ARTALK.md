@@ -1,102 +1,186 @@
-# 📖 Artalk 评论系统部署手册（Zeabur 版）
+# 📖 Artalk 评论系统部署手册（自有 VPS + Docker 版）
 
-> 目标：为博客部署自托管评论服务，实现 **邮箱验证码注册登录 + 仅登录可评论 + 站长管理后台**。
-> 耗时约 15-20 分钟。需要：一个邮箱（用于 SMTP 发验证码，推荐 QQ/163）+ 一个 Zeabur 账号（免费）。
-
----
-
-## 第 0 步：准备（5 分钟）
-
-### 0.1 开启邮箱 SMTP（QQ 邮箱示例）
-
-1. 登录 QQ 邮箱 → 顶部「设置」→「账户」
-2. 找到「POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV 服务」
-3. 开启「IMAP/SMTP 服务」→ 按提示用手机发短信验证
-4. 验证后会给你一个 **16 位授权码**（不是 QQ 密码！形如 `abcdefghijklmnop`）
-5. **把授权码保存好**，后面要用
-
-> 163 邮箱同理：设置 → POP3/SMTP → 开启 → 记下授权码。
+> 目标：在自己的 VPS 上部署自托管评论服务，实现
+> **邮箱验证码注册登录 + 仅登录可评论 + 站长管理后台**。
+> 需要：一台 Linux VPS（Ubuntu 推荐）+ 一个域名 + 一个发信邮箱。
 
 ---
 
-## 第 1 步：注册 Zeabur（3 分钟）
+## ⚠️ 部署前必读（3 件事）
 
-1. 打开 👉 **https://zeabur.com**
-2. 点右上角「登录」→ 用 GitHub 账号登录（你有 GitHub，最方便）
-3. 首次进入会引导创建项目，按提示完成（免费额度即可，无需绑卡）
-
----
-
-## 第 2 步：一键部署 Artalk（5 分钟）
-
-1. 打开 Zeabur 的 **Artalk 官方模板**：👉 **https://zeabur.cn/templates/BL1Y7G**
-2. 点「部署到 Zeabur」→ 选择你刚建的项目
-3. 等待构建完成（约 1-2 分钟）
-4. 部署完成后，在服务页面点 **「生成域名 / Networking」** → 绑定一个域名
-   （免费域名类似 `artalk-xxxx.zeabur.app`，记下这个地址，后面要用）
+1. **HTTPS 必须**：你的博客是 HTTPS，评论服务也必须是 HTTPS，否则被浏览器拦截。
+   本手册用 **Caddy 自动申请免费 SSL 证书**，你只需把域名解析到服务器即可。
+2. **域名**：去阿里云/腾讯云/Cloudflare 买个域名（或已有域名），
+   添加一条 A 记录，指向 VPS 的公网 IP。
+3. **发信邮箱**：QQ/163 邮箱开 SMTP 拿到「授权码」（见第 3 步）。
 
 ---
 
-## 第 3 步：配置 Artalk（SMTP 邮件 + 管理员 + 强制登录评论）
+## 第 0 步：买 VPS（在 tisula 或任意商家）
 
-### 3.1 进入后台
+- 系统：**Ubuntu 24.04 / 22.04**（或 Debian）
+- 配置：**1 核 1G 内存 / 10G 硬盘** 以上即可，评论系统很轻量
+- 记下：**公网 IP**、**root 密码**
 
-1. 浏览器打开你的 Artalk 地址，例如 `https://artalk-xxxx.zeabur.app`
-2. 首次打开会让你**初始化管理员账号**（设用户名 + 密码，记住！）
+> 补充：tisula 等未核实商家请先自行搜「xx 靠谱吗」确认口碑，确保正规再付款。
 
-### 3.2 配置 SMTP（发验证码邮件）
+---
 
-进入 Artalk 管理后台 →「设置」→ 找到类似下面的配置项并填写：
+## 第 1 步：登录 VPS + 安装 Docker（3 分钟）
 
-```yaml
-# 邮件发送（SMTP）
+用 SSH 连上服务器（Windows 可用 PowerShell 输入 `ssh root@你的IP`），然后执行：
+
+```bash
+# 更新系统
+apt update && apt upgrade -y
+
+# 安装 Docker + Compose 插件
+curl -fsSL https://get.docker.com | bash
+systemctl enable --now docker
+apt install -y docker-compose-plugin
+```
+
+验证：`docker --version` 有输出即成功。
+
+---
+
+## 第 2 步：准备部署文件（复制即用）
+
+在服务器上创建目录并进入：
+
+```bash
+mkdir -p /opt/artalk && cd /opt/artalk
+```
+
+### 创建 `docker-compose.yml`
+
+```bash
+cat > docker-compose.yml <<'EOF'
+version: "3"
+services:
+  artalk:
+    image: artalk/artalk:latest
+    container_name: artalk
+    restart: always
+    ports:
+      - "23366:23366"          # 仅内网（经 Caddy 反代）
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./data:/data           # 数据持久化（评论、配置）
+    command: ["server", "--config", "/data/artalk.yml"]
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - artalk
+volumes:
+  caddy_data:
+  caddy_config:
+EOF
+```
+
+### 创建 `Caddyfile`（把域名换成你的）
+
+```bash
+cat > Caddyfile <<'EOF'
+arttalk.你的域名.com {
+    reverse_proxy artalk:23366
+}
+EOF
+```
+
+> ⚠️ 把 `arttalk.你的域名.com` 换成你真实的域名（且已解析到本服务器 IP）。
+> Caddy 会自动给这个域名申请并续期免费 HTTPS 证书。
+
+---
+
+## 第 3 步：配置 SMTP（发验证码邮件）
+
+启动前先配邮件。创建 Artalk 配置文件目录并写入配置：
+
+```bash
+mkdir -p data
+cat > data/artalk.yml <<'EOF'
+app:
+  host: 0.0.0.0
+  port: 23366
+  debug: false
+  locale: zh-CN
+  timezone: Asia/Shanghai
+# 邮件（发验证码）
 smtp:
-  host: smtp.qq.com      # QQ邮箱填 smtp.qq.com；163填 smtp.163.com
+  enabled: true
+  host: smtp.qq.com          # QQ邮箱；163签 smtp.163.com
   port: 465
   username: 你的邮箱@qq.com
-  password: 你的16位授权码    # ⚠️ 不是QQ密码，是授权码
+  password: 你的16位授权码    # ⚠️ 不是QQ密码，是开启SMTP后获得的授权码
   from_name: 张静中的博客
-```
-
-保存后，可以发一条测试评论验证邮件是否正常。
-
-### 3.3 开启「仅登录可评论」（关键！）
-
-在 Artalk 设置里找到 **Trust / 权限** 相关配置，设置类似：
-
-```yaml
-# 访客模式关闭：只有登录用户能评论
+# 信任与登录
 auth:
-  # 若你的版本没有该字段，可在后台「信任等级」中设置
-  ...
-trust_commenter: true     # 仅信任用户可评论（登录后自动信任）
+  # 仅登录用户可评论（信任等级）
+  trust: 1
+# 站点名（博客配置时会用到，保持一致）
+site:
+  name: 张静中的博客
+  public: true
+EOF
 ```
 
-> 不同版本界面文字略有差异，核心目标：**关掉「匿名评论」，打开「邮箱验证码登录」和「登录后可评论」**。若界面没有直接的开关，参考 Artalk 官方文档：https://artalk.js.org/zh/guide/frontend/auth.html
-
-### 3.4 设一个站名（site）
-
-Artalk 服务端要设一个 **site 名字**（例如 `张静中的博客`），后面配置博客时会用到，保持一致即可。
+> 需要 SMTP 授权码：QQ 邮箱 → 设置 → 账户 → 开启「IMAP/SMTP」→ 记下 16 位授权码。
 
 ---
 
-## 第 4 步：告诉博主你的服务地址
+## 第 4 步：启动
 
-完成后，把 **Artalk 服务地址**（如 `https://artalk-xxxx.zeabur.app`）和 **site 名** 发给我，
-我会填进博客配置并重新部署，评论框立刻上线。
+```bash
+cd /opt/artalk
+docker compose up -d
+```
+
+查看日志确认启动成功：
+
+```bash
+docker compose logs -f artalk
+```
+
+---
+
+## 第 5 步：初始化管理员 + 后台
+
+1. 浏览器打开 **https://arttalk.你的域名.com**
+2. 首次进入会引导**初始化管理员账号**（设用户名 + 密码，记住它）
+3. 右上角登录 → 进入**管理后台**
+4. 后台可管理评论、查看登录用户、配置更多项
+
+---
+
+## 第 6 步：把服务地址告诉我
+
+把 **https://arttalk.你的域名.com** 和 **site 名（张静中的博客）** 发给我，
+我填进博客配置并重新部署，评论框立即上线。
 
 ---
 
 ## ❓ 常见问题
 
+**Q：证书申请失败 / 无法访问？**
+A：确认域名已正确解析到服务器 IP；服务器 80/443 端口已放行（云厂商安全组要开）。
+
 **Q：验证码邮件收不到？**
-A：检查 SMTP 授权码是否填对（不是密码）；检查端口 465（SSL）；QQ 邮箱偶尔会进垃圾箱。
+A：检查授权码是否填对（不是密码）；端口 465；QQ 邮箱可能进垃圾箱。
 
-**Q：Zeabur 免费额度够吗？**
-A：Artalk 很轻量（内存占用小），个人博客评论量完全在免费额度内。
+**Q：如何备份？**
+A：评论数据都在 `/opt/artalk/data` 文件夹，定期打包备份即可。
 
-**Q：如何进 Artalk 管理后台？**
-A：浏览器访问你的 Artalk 地址 → 右上角登录（用第 3.1 步设的管理员账号）→ 进入管理。
-
-**Q：之前页面上的「评论未启用」提示什么时候消失？**
-A：我配置好 `artalkServer` 并重新部署后即消失。
+**Q：我想改成「能匿名评论 / 必须登录才能评论」？**
+A：改 `data/artalk.yml` 里 `auth.trust` 的值（0=匿名可评论，1=登录后可评论），
+改完 `docker compose restart artalk`。
