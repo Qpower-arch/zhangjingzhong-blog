@@ -1,0 +1,30 @@
+---
+import { siteConfig } from '../site.config';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div>
+      {siteConfig.copyright} · Powered by{' '}
+      <a href="https://astro.build" target="_blank" rel="noopener">Astro</a>
+      {
+        siteConfig.github && (
+          <>
+            {' '}
+            · <a href={`https://github.com/${siteConfig.github}`} target="_blank" rel="noopener">GitHub</a>
+          </>
+        )
+      }
+    </div>
+    <div class="mono">
+      <span id="busuanzi_value_site_pv">--</span> 次访问
+    </div>
+  </div>
+  <!-- 访问统计（不蒜子，免费、无需后端）。若想关闭，删除此脚本即可 -->
+  <script
+    is:inline
+    src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"
+    async
+  ></script>
+</footer>

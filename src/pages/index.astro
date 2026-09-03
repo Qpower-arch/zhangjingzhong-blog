@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { formatDate } from '../lib/dates';
+import { siteConfig } from '../site.config';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 5);
+
+const progress = (await getCollection('progress'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const featuredResources = (await getCollection('resources'))
+  .filter((r) => r.data.featured)
+  .slice(0, 4);
+---
+
+<BaseLayout wide>
+  <section class="hero">
+    <h1>👋 你好，我是 {siteConfig.author}</h1>
+    <p class="hero-greet">
+      {siteConfig.description} 这里是我的自留地：用文章记录走过的路，
+      用时间线追踪学习进度，把好用的软件资源整理成册。
+    </p>
+    <p style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="btn btn-primary" href="/blog">📖 阅读文章</a>
+      <a class="btn" href="/progress">📈 学习进度</a>
+      <a class="btn" href="/resources">📦 软件资源</a>
+    </p>
+  </section>
+
+  <h2 class="section-title">
+    <span>🆕 最新文章</span>
+    <a class="muted" style="font-size:.9rem; font-weight:400" href="/blog">查看全部 →</a>
+  </h2>
+  <div class="post-list">
+    {
+      posts.map((post) => (
+        <article class="post-item">
+          <h3>
+            <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+          </h3>
+          <p class="post-excerpt">{post.data.description}</p>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div class="tags" style="margin:0;">
+              {
+                post.data.tags.slice(0, 4).map((t) => (
+                  <a class="tag" href={`/blog?tag=${encodeURIComponent(t)}`}>{t}</a>
+                ))
+              }
+            </div>
+            <time class="muted mono" datetime={post.data.pubDate.toISOString()}>
+              {formatDate(post.data.pubDate)}
+            </time>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+
+  <h2 class="section-title">
+    <span>📈 学习进度（最近）</span>
+    <a class="muted" style="font-size:.9rem; font-weight:400" href="/progress">完整时间线 →</a>
+  </h2>
+  <div class="timeline">
+    {
+      progress.map((item) => (
+        <div class:list={['tl-item', item.data.status === '已完成' && 'done', item.data.status === '计划中' && 'planned', item.data.status === '暂停' && 'paused']}>
+          <div class="tl-date">{formatDate(item.data.date)}</div>
+          <div class="tl-title">
+            {item.data.title}
+            <span class:list={['badge', item.data.status === '已完成' && 'badge-done', item.data.status === '进行中' && 'badge-doing', item.data.status === '计划中' && 'badge-planned', item.data.status === '暂停' && 'badge-paused']}>
+              {item.data.status}
+            </span>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <h2 class="section-title">
+    <span>📦 精选资源</span>
+    <a class="muted" style="font-size:.9rem; font-weight:400" href="/resources">全部资源 →</a>
+  </h2>
+  <div class="post-list">
+    {
+      featuredResources.map((r) => (
+        <div class="post-item resource-card">
+          <div class="resource-head">
+            <h3><a href={r.data.url} target="_blank" rel="noopener noreferrer">{r.data.name}</a></h3>
+            <span class="tag tag-accent">{r.data.category}</span>
+          </div>
+          <p class="resource-desc">{r.data.description}</p>
+        </div>
+      ))
+    }
+  </div>
+</BaseLayout>

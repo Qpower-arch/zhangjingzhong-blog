@@ -1,0 +1,124 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="搜索" description="站内全文搜索">
+  <h1>🔍 站内搜索</h1>
+  <p class="muted">输入关键词，实时搜索全部文章（标题 / 摘要 / 标签 / 正文）。</p>
+
+  <input
+    class="search-box"
+    id="search-input"
+    type="search"
+    placeholder="输入关键词，如：Python、教程、资源…"
+    autocomplete="off"
+  />
+  <p class="search-result-count" id="search-count"></p>
+  <div class="post-list" id="search-results"></div>
+</BaseLayout>
+
+<script>
+  interface PostIndex {
+    slug: string;
+    title: string;
+    description: string;
+    category: string;
+    tags: string[];
+    pubDate: string;
+    url: string;
+    body: string;
+  }
+
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const results = document.getElementById('search-results') as HTMLElement;
+  const count = document.getElementById('search-count') as HTMLElement;
+
+  let index: PostIndex[] = [];
+  const MAX_SHOW = 30;
+
+  async function loadIndex() {
+    try {
+      const res = await fetch('/search-index.json');
+      index = (await res.json()) as PostIndex[];
+      // 如果 URL 带 ?q= 参数，自动填入并搜索
+      const q = new URLSearchParams(location.search).get('q');
+      if (q) {
+        input.value = q;
+        doSearch(q);
+      }
+    } catch (e) {
+      results.innerHTML =
+        '<div class="empty">搜索索引加载失败。请先运行 <code>npm run build</code> 生成 <code>dist/search-index.json</code>。</div>';
+    }
+  }
+
+  function highlight(text: string, q: string): string {
+    if (!q) return escapeHtml(text);
+    const idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx < 0) return escapeHtml(text);
+    const start = Math.max(0, idx - 30);
+    const end = Math.min(text.length, idx + q.length + 80);
+    let snippet = (start > 0 ? '…' : '') + text.slice(start, end) + (end < text.length ? '…' : '');
+    const rx = new RegExp(`(${escapeRegExp(q)})`, 'ig');
+    snippet = snippet.replace(rx, '<mark>$1</mark>');
+    return escapeHtml(snippet).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
+  }
+
+  function escapeHtml(s: string): string {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function escapeRegExp(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function doSearch(q: string) {
+    const kw = q.trim().toLowerCase();
+    if (!kw) {
+      results.innerHTML = '';
+      count.textContent = '';
+      return;
+    }
+    const hits = index.filter((p) => {
+      const haystack = [p.title, p.description, p.category, p.body, ...p.tags]
+        .join(' ')
+        .toLowerCase();
+      return kw.split(/\s+/).every((w) => haystack.includes(w));
+    });
+
+    count.textContent = hits.length
+      ? `找到 ${hits.length} 篇相关文章`
+      : '没有找到匹配的文章，换个关键词试试？';
+
+    results.innerHTML = hits
+      .slice(0, MAX_SHOW)
+      .map((p) => {
+        const bodySnippet = highlight(p.body || p.description, q);
+        return `
+          <article class="post-item">
+            <h3><a href="${p.url}">${escapeHtml(p.title)}</a></h3>
+            <p class="post-excerpt">${bodySnippet.slice(0, 180)}</p>
+            <div class="tags" style="margin:0;">
+              <span class="tag tag-accent">${escapeHtml(p.category)}</span>
+              ${p.tags.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+              <time class="muted mono">${p.pubDate}</time>
+            </div>
+          </article>`;
+      })
+      .join('');
+  }
+
+  input.addEventListener('input', () => {
+    // 更新 URL 参数，便于分享搜索
+    const url = new URL(location.href);
+    if (input.value) url.searchParams.set('q', input.value);
+    else url.searchParams.delete('q');
+    history.replaceState(null, '', url);
+    doSearch(input.value);
+  });
+
+  loadIndex();
+</script>

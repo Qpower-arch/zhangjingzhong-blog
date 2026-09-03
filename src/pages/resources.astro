@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const items = (await getCollection('resources')).sort(
+  (a, b) =>
+    Number(b.data.featured) - Number(a.data.featured) ||
+    new Date(b.data.addedDate ?? 0).valueOf() - new Date(a.data.addedDate ?? 0).valueOf()
+);
+
+// 按分类分组
+const byCat = new Map<string, typeof items>();
+for (const it of items) {
+  const c = it.data.category;
+  if (!byCat.has(c)) byCat.set(c, []);
+  byCat.get(c)!.push(it);
+}
+const cats = [...byCat.keys()];
+---
+
+<BaseLayout title="软件资源" description="软件资源收藏与分享">
+  <h1>📦 软件资源库</h1>
+  <p class="muted">
+    我亲自用过、觉得值得推荐的工具与资料。点击名称跳转到官方下载页
+    （或网盘链接）。⚠️ 请优先从官网下载，谨防第三方捆绑。
+  </p>
+
+  {
+    cats.length === 0 ? (
+      <div class="empty">
+        还没有资源，去 <code>src/content/resources/</code> 添加条目吧
+      </div>
+    ) : (
+      cats.map((cat) => (
+        <section style="margin-top:24px;">
+          <h2 style="font-size:1.2rem;">{cat}</h2>
+          <div class="post-list">
+            {
+              byCat.get(cat)!.map((r) => (
+                <div class="post-item resource-card">
+                  <div class="resource-head">
+                    <h3>
+                      <a href={r.data.url} target="_blank" rel="noopener noreferrer">
+                        {r.data.name}
+                        {r.data.featured && ' ⭐'}
+                      </a>
+                    </h3>
+                    <span class="tag tag-accent">{r.data.license}</span>
+                  </div>
+                  <p class="resource-desc">{r.data.description}</p>
+                  <div class="resource-meta">
+                    <span>💻 {r.data.platform.join(' / ')}</span>
+                    {
+                      r.data.addedDate && (
+                        <span>📅 收录于 {r.data.addedDate.toISOString().slice(0, 10)}</span>
+                      )
+                    }
+                    <span>
+                      🔗 <a href={r.data.url} target="_blank" rel="noopener noreferrer">访问官网/下载</a>
+                    </span>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </section>
+      ))
+    )
+  }
+</BaseLayout>

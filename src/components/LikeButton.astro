@@ -1,0 +1,124 @@
+---
+import { likeConfig } from '../site.config';
+
+interface Props {
+  slug: string;
+  title: string;
+  // 手动指定初始点赞数（可选，local 模式下作为展示基数）
+  initialLikes?: number;
+}
+const { slug, title, initialLikes = 0 } = Astro.props;
+const isRemote = likeConfig.mode === 'remote' && likeConfig.likeApiUrl !== '';
+---
+
+<div class="like-area" data-like-area data-slug={slug}>
+  <button class="like-btn" type="button" data-like-btn aria-label={`点赞文章：${title}`}>
+    <span data-like-icon>☆</span>
+    <span data-like-label>赞一个</span>
+    <span class="like-btn-count" data-count>{initialLikes}</span>
+  </button>
+  <span class="muted" data-like-count>
+    已获 <span class="like-count" data-count>{initialLikes}</span> 次点赞
+  </span>
+</div>
+
+{
+  isRemote && (
+    <p class="center muted" style="font-size:.8rem; margin-top:6px;">
+      点赞数据由远程接口保存（{likeConfig.mode} 模式）
+    </p>
+  )
+}
+
+<script define:vars={{ isRemote, apiUrl: likeConfig.likeApiUrl }}>
+  const area = document.querySelector('[data-like-area]') as HTMLElement;
+  if (!area) throw new Error('like area not found');
+  const slug = area.dataset.slug!;
+  const btn = area.querySelector('[data-like-btn]') as HTMLButtonElement;
+  const countEl = area.querySelector('.like-count') as HTMLElement;
+  const btnCountEl = area.querySelector('.like-btn-count') as HTMLElement;
+  const labelEl = area.querySelector('[data-like-label]') as HTMLElement;
+  const iconEl = area.querySelector('[data-like-icon]') as HTMLElement;
+
+  const MODE: 'local' | 'remote' = isRemote ? 'remote' : 'local';
+  const API_URL = apiUrl;
+
+  const LS_KEY = `like:${slug}`;
+  let likes = 0;
+  let liked = false;
+
+  function render() {
+    countEl.textContent = String(likes);
+    if (btnCountEl) btnCountEl.textContent = String(likes);
+    btn.classList.toggle('liked', liked);
+    labelEl.textContent = liked ? '已点赞' : '赞一个';
+    iconEl.textContent = liked ? '⭐' : '☆';
+  }
+
+  // ---------- 本地模式 ----------
+  async function initLocal() {
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) {
+      const s = JSON.parse(saved) as { liked: boolean; base: number };
+      likes = s.liked ? s.base + 1 : s.base;
+      liked = !!s.liked;
+    } else {
+      likes = Number(countEl.textContent ?? '0');
+    }
+    render();
+  }
+
+  async function toggleLocal() {
+    const prev = localStorage.getItem(LS_KEY);
+    const s = prev
+      ? (JSON.parse(prev) as { liked: boolean; base: number })
+      : { liked: false, base: Number(countEl.textContent ?? '0') };
+    liked = !liked;
+    likes = liked ? s.base + 1 : s.base;
+    localStorage.setItem(LS_KEY, JSON.stringify({ liked, base: s.base }));
+    render();
+  }
+
+  // ---------- 远程模式 ----------
+  async function initRemote() {
+    try {
+      const res = await fetch(`${API_URL}?slug=${encodeURIComponent(slug)}`);
+      if (res.ok) {
+        const d = (await res.json()) as { likes: number; liked?: boolean };
+        likes = d.likes;
+        liked = !!d.liked;
+        render();
+      }
+    } catch (e) {
+      console.warn('like api 不可用，退化为本地计数', e);
+      await initLocal();
+    }
+  }
+
+  async function toggleRemote() {
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      });
+      if (res.ok) {
+        const d = (await res.json()) as { likes: number; liked: boolean };
+        likes = d.likes;
+        liked = d.liked;
+        render();
+      }
+    } catch (e) {
+      console.warn('like api 不可用，退化为本地计数', e);
+      await toggleLocal();
+    }
+  }
+
+  btn.addEventListener('click', () => {
+    if (MODE === 'remote') void toggleRemote();
+    else void toggleLocal();
+  });
+
+  if (MODE === 'remote') void initRemote();
+  else void initLocal();
+</script>

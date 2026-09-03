@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { formatDate } from '../../lib/dates';
+
+// 支持 ?tag=xxx 过滤；分类也按标签形式暴露
+const tag = Astro.url.searchParams.get('tag');
+
+const allPosts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const posts = tag ? allPosts.filter((p) => p.data.tags.includes(tag) || p.data.category === tag) : allPosts;
+
+// 全部标签（去重统计）
+const tagCounts = new Map<string, number>();
+for (const p of allPosts) {
+  for (const t of [...p.data.tags, p.data.category]) {
+    tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+  }
+}
+const allTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]);
+---
+
+<BaseLayout title="文章" description="全部文章列表">
+  <h1>📚 全部文章</h1>
+
+  <div class="tags" style="margin: 16px 0;">
+    <a class:list={['tag', !tag && 'tag-accent']} href="/blog">全部</a>
+    {
+      allTags.map(([t, n]) => (
+        <a
+          class:list={['tag', tag === t && 'tag-accent']}
+          href={`/blog?tag=${encodeURIComponent(t)}`}
+        >
+          {t} ({n})
+        </a>
+      ))
+    }
+  </div>
+
+  {
+    tag && (
+      <p class="muted">
+        正在筛选标签：<span class="tag tag-accent">{tag}</span>{' '}
+        <a href="/blog">（清除筛选）</a>
+      </p>
+    )
+  }
+
+  {
+    posts.length === 0 ? (
+      <div class="empty">该分类下暂无文章，去写一篇吧 ✍️</div>
+    ) : (
+      <div class="post-list">
+        {
+          posts.map((post) => (
+            <article class="post-item">
+              <h3>
+                <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+              </h3>
+              <p class="post-excerpt">{post.data.description}</p>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                <div class="tags" style="margin:0;">
+                  {
+                    post.data.tags.slice(0, 5).map((t) => (
+                      <a class="tag" href={`/blog?tag=${encodeURIComponent(t)}`}>{t}</a>
+                    ))
+                  }
+                </div>
+                <time class="muted mono" datetime={post.data.pubDate.toISOString()}>
+                  {formatDate(post.data.pubDate)}
+                </time>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    )
+  }
+</BaseLayout>

@@ -1,0 +1,98 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { formatDateCN } from '../lib/dates';
+
+const items = (await getCollection('progress')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
+// 按年分组
+const byYear = new Map<number, typeof items>();
+for (const it of items) {
+  const y = it.data.date.getFullYear();
+  if (!byYear.has(y)) byYear.set(y, []);
+  byYear.get(y)!.push(it);
+}
+const years = [...byYear.keys()].sort((a, b) => b - a);
+
+const statusClass: Record<string, string> = {
+  已完成: 'done',
+  进行中: 'doing',
+  计划中: 'planned',
+  暂停: 'paused',
+};
+const badgeClass: Record<string, string> = {
+  已完成: 'badge-done',
+  进行中: 'badge-doing',
+  计划中: 'badge-planned',
+  暂停: 'badge-paused',
+};
+---
+
+<BaseLayout title="学习进度" description="学习进度时间线">
+  <h1>📈 学习进度时间线</h1>
+  <p class="muted">
+    记录我在各个方向上的学习足迹：开始了什么、进行到哪、完成了什么。
+    每完成一个里程碑，就在这里打个勾 ✅。
+  </p>
+
+  {
+    years.length === 0 ? (
+      <div class="empty">还没有记录，去 <code>src/content/progress/</code> 添加第一条吧</div>
+    ) : (
+      years.map((year) => (
+        <section style="margin-top:24px;">
+          <h2 class="mono" style="font-size:1.3rem; color:var(--accent);">🗓 {year} 年</h2>
+          <div class="timeline">
+            {
+              byYear.get(year)!.map((item) => (
+                <article
+                  class:list={['tl-item', statusClass[item.data.status]]}
+                  style={item.data.status === '进行中' ? 'background:var(--accent-soft);border-radius:8px;padding:6px 10px 6px 0;' : undefined}
+                >
+                  <div class="tl-date">
+                    {formatDateCN(item.data.date)}
+                    {item.data.status === '进行中' && ' · 当前进行中 🔥'}
+                  </div>
+                  <div class="tl-title">
+                    {item.data.title}
+                    <span
+                      class:list={['badge', badgeClass[item.data.status]]}
+                    >
+                      {item.data.status}
+                    </span>
+                  </div>
+                  {
+                    item.data.tags.length > 0 && (
+                      <div class="tags" style="margin:4px 0;">
+                        {
+                          item.data.tags.map((t) => (
+                            <span class="tag">{t}</span>
+                          ))
+                        }
+                      </div>
+                    )
+                  }
+                  {
+                    item.data.milestones.length > 0 && (
+                      <div class="tl-body">
+                        <ul>
+                          {
+                            item.data.milestones.map((m) => (
+                              <li>{m}</li>
+                            ))
+                          }
+                        </ul>
+                      </div>
+                    )
+                  }
+                </article>
+              ))
+            }
+          </div>
+        </section>
+      ))
+    )
+  }
+</BaseLayout>

@@ -1,0 +1,81 @@
+---
+import '../styles/global.css';
+import { siteConfig } from '../site.config';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  // 文章页正文内容宽一点
+  wide?: boolean;
+}
+
+const {
+  title = siteConfig.name,
+  description = siteConfig.description,
+  wide = false,
+} = Astro.props;
+
+const pageTitle = title === siteConfig.name ? title : `${title} | ${siteConfig.name}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? 'http://localhost:4321');
+const isHome = Astro.url.pathname === '/';
+---
+
+<!doctype html>
+<html lang={siteConfig.lang} data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={siteConfig.name}
+      href="/rss.xml"
+    />
+    <!-- 主题初始化：避免刷新闪白 -->
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (!t)
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    <style is:global>
+      .hero-greet {
+        font-size: 1.15rem;
+      }
+    </style>
+  </head>
+  <body>
+    <Header currentPath={Astro.url.pathname} />
+    <main class:list={['main', 'container', { wide }]}>
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      // 暗色模式切换（Header 按钮触发）
+      document.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest('[data-theme-toggle]');
+        if (!btn) return;
+        const html = document.documentElement;
+        const next =
+          html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        try {
+          localStorage.setItem('theme', next);
+        } catch (err) {}
+      });
+    </script>
+  </body>
+</html>

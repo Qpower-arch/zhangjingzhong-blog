@@ -1,0 +1,81 @@
+---
+import { commentConfig } from '../site.config';
+
+interface Props {
+  slug: string;
+  title: string;
+}
+const { slug, title } = Astro.props;
+const enabled =
+  commentConfig.provider === 'giscus' &&
+  commentConfig.repo !== '' &&
+  commentConfig.repoId !== '' &&
+  commentConfig.categoryId !== '';
+---
+
+<section class="comments" data-comments-section data-slug={slug}>
+  <h2 style="margin-top: 2em;">💬 评论</h2>
+
+  {
+    !enabled && (
+      <div class="card muted" style="font-size:.9rem">
+        <p style="margin:0 0 6px">
+          📌 评论功能尚未启用。当前为占位提示。
+        </p>
+        <p style="margin:0">
+          接入步骤（约 5 分钟，免费）：① 将博客仓库设为 public 并在仓库
+          Settings 中开启 <b>Discussions</b>；② 安装{' '}
+          <a href="https://github.com/apps/giscus" target="_blank" rel="noopener">giscus App</a>
+          ；③ 在 <a href="https://giscus.app" target="_blank" rel="noopener">giscus.app</a>{' '}
+          生成配置；④ 填入 <code>src/site.config.ts</code> 的
+          <code> commentConfig</code> 后重新部署即可生效。
+        </p>
+      </div>
+    )
+  }
+
+  {
+    enabled && (
+      <div class="card" data-giscus-container>
+        <!-- Giscus 由下方脚本注入 -->
+      </div>
+    )
+  }
+</section>
+
+{
+  enabled && (
+    <script is:inline>
+      // giscus 加载配置：改 site.config.ts 即可，无需动这里
+      const giscusConfig = {
+        repo: '{commentConfig.repo}',
+        repoId: '{commentConfig.repoId}',
+        category: '{commentConfig.category}',
+        categoryId: '{commentConfig.categoryId}',
+        mapping: '{commentConfig.mapping}',
+        lang: '{commentConfig.lang}',
+      };
+      window.addEventListener('load', () => {
+        const container = document.querySelector('[data-giscus-container]');
+        if (!container) return;
+        const s = document.createElement('script');
+        s.src = 'https://giscus.app/client.js';
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        s.setAttribute('data-repo', giscusConfig.repo);
+        s.setAttribute('data-repo-id', giscusConfig.repoId);
+        s.setAttribute('data-category', giscusConfig.category);
+        s.setAttribute('data-category-id', giscusConfig.categoryId);
+        s.setAttribute('data-mapping', giscusConfig.mapping);
+        s.setAttribute('data-strict', '0');
+        s.setAttribute('data-reactions-enabled', '1');
+        s.setAttribute('data-emit-metadata', '0');
+        s.setAttribute('data-input-position', 'top');
+        s.setAttribute('data-theme', 'preferred_color_scheme');
+        s.setAttribute('data-lang', giscusConfig.lang);
+        s.setAttribute('data-loading', 'lazy');
+        container.appendChild(s);
+      });
+    </script>
+  )
+}
