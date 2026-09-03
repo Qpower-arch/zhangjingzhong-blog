@@ -1,0 +1,107 @@
+---
+// 三合一搜索框组件：Bing / 百度 / Google
+// 可在首页、工具箱等任意页面复用
+const { compact = false } = Astro.props;
+---
+
+<div class:list={['tri-search', { 'tri-search-compact': compact }]}>
+  <div class="tri-search-head">
+    <span>🔎 <b>三合一搜索</b></span>
+    <div class="search-tabs" role="tablist">
+      <button class="search-tab active" data-engine="bing" type="button">Bing</button>
+      <button class="search-tab" data-engine="baidu" type="button">百度</button>
+      <button class="search-tab" data-engine="google" type="button">Google</button>
+    </div>
+  </div>
+  <form class="tools-search-form" id="global-search">
+    <input
+      class="search-box"
+      type="search"
+      id="global-search-input"
+      placeholder="输入关键词，回车搜索…"
+      autocomplete="off"
+    />
+    <button class="btn btn-primary" type="submit">搜索</button>
+  </form>
+</div>
+
+<script>
+  const ENGINE_URLS: Record<string, string> = {
+    bing: 'https://www.bing.com/search?q=',
+    baidu: 'https://www.baidu.com/s?wd=',
+    google: 'https://www.google.com/search?q=',
+  };
+  const LABEL: Record<string, string> = { bing: 'Bing', baidu: '百度', google: 'Google' };
+  const input = document.getElementById('global-search-input') as HTMLInputElement;
+  const tabs = document.querySelectorAll('.search-tab');
+  const form = document.getElementById('global-search') as HTMLFormElement;
+  let engine = 'bing';
+
+  tabs.forEach((t) => {
+    (t as HTMLElement).addEventListener('click', () => {
+      engine = (t as HTMLElement).dataset.engine!;
+      tabs.forEach((x) => x.classList.remove('active'));
+      (t as HTMLElement).classList.add('active');
+      input.placeholder = `用 ${LABEL[engine]} 搜索…`;
+    });
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (!q) return;
+    window.open(ENGINE_URLS[engine] + encodeURIComponent(q), '_blank');
+  });
+</script>
+
+<style>
+  .tri-search {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    margin: 24px 0 32px;
+  }
+  .tri-search-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .tri-search-head > span {
+    font-size: 1.05rem;
+    color: var(--fg);
+  }
+  .tri-search-compact { margin: 8px 0 28px; padding: 18px; }
+  .tri-search-compact .tri-search-head { margin-bottom: 12px; }
+  .tools-search-form {
+    display: flex;
+    gap: 10px;
+  }
+  .tools-search-form .search-box { flex: 1; }
+  .search-tabs {
+    display: inline-flex;
+    gap: 6px;
+    background: var(--bg-soft);
+    padding: 5px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+  .search-tab {
+    border: none;
+    background: transparent;
+    padding: 6px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--fg-muted);
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+  .search-tab.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+  }
+</style>

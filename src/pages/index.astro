@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import { formatDate } from '../lib/dates';
 import { withBase } from '../lib/base';
 import { siteConfig } from '../site.config';
+import TriSearch from '../components/TriSearch.astro';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
@@ -31,6 +32,8 @@ const featuredResources = (await getCollection('resources'))
       <a class="btn" href={withBase('/resources')}>📦 软件资源</a>
     </div>
   </section>
+
+  <TriSearch compact />
 
   <h2 class="section-title">
     <span>🆕 最新文章</span>

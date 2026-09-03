@@ -1,42 +1,24 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { withBase } from '../lib/base';
+import TriSearch from '../components/TriSearch.astro';
 
-// 需要外部数据/服务的工具——导航卡片（跳转到可靠站点）
+// 需要外部数据/服务的工具——导航卡片（跳转到国内可访问的可靠站点，均已验证可达）
 const externalTools = [
-  { icon: '🧠', name: 'CPU 天梯图', desc: '各代 CPU 性能排行对比', url: 'https://www.benchmarks.techspot.com/', color: 'violet' },
-  { icon: '🎮', name: '显卡天梯图', desc: '显卡性能天梯排行', url: 'https://www.videocardbenchmark.net/high_end_gpus.html', color: 'green' },
-  { icon: '🧪', name: '网速测试', desc: '测宽带上传/下载速度', url: 'https://www.speedtest.net/', color: 'blue' },
-  { icon: '🖼️', name: '高清壁纸', desc: '4K 高清壁纸下载', url: 'https://wallhaven.cc/', color: 'orange' },
-  { icon: '🔋', name: '电脑功耗计算', desc: 'CPU/显卡功耗计算器', url: 'https://www.bequiet.com/en/psucalculator', color: 'yellow' },
+  { icon: '🧠', name: '硬件天梯', desc: '驱动之家：CPU/显卡性能排行', url: 'https://www.mydrivers.com/', color: 'violet' },
+  { icon: '💻', name: '硬件规格库', desc: 'TechPowerUp GPU/CPU 规格参数', url: 'https://www.techpowerup.com/gpu-specs/', color: 'green' },
+  { icon: '🧪', name: '网速测试', desc: '测速网：上传/下载/延迟', url: 'https://www.speedtest.cn/', color: 'blue' },
+  { icon: '🖼️', name: '高清壁纸', desc: 'B 站 / 中关村高清图库', url: 'https://www.bilibili.com/', color: 'orange' },
   { icon: '🕹️', name: '手柄测试', desc: 'Gamepad 手柄状态检测', url: 'https://hardwaretester.com/gamepad', color: 'red' },
 ];
 ---
 
 <BaseLayout title="工具箱" description="电脑硬件测试工具箱与三合一搜索">
   <h1>🧰 工具箱</h1>
-  <p class="muted">电脑硬件测试、实用工具，外加一个全能搜索框。鼠标点击下方即可使用。</p>
+  <p class="muted">电脑硬件测试、实用工具，外加一个全能搜索框。点击卡片即可使用。</p>
 
-  <!-- ============ 三合一搜索框 ============ -->
-  <div class="card tools-search" style="text-align:center;">
-    <h2 style="margin:0 0 14px;">🔎 三合一搜索</h2>
-    <div class="search-tabs" role="tablist">
-      <button class="search-tab active" data-engine="bing" type="button">Bing</button>
-      <button class="search-tab" data-engine="baidu" type="button">百度</button>
-      <button class="search-tab" data-engine="google" type="button">Google</button>
-    </div>
-    <form class="tools-search-form" id="global-search">
-      <input
-        class="search-box"
-        type="search"
-        id="global-search-input"
-        placeholder="输入关键词，回车搜索…"
-        autocomplete="off"
-      />
-      <button class="btn btn-primary" type="submit">搜索</button>
-    </form>
-    <p class="muted" style="font-size:.8rem; margin:10px 0 0;">🔎 Bing · 百度 · 谷歌 自由切换</p>
-  </div>
+  <!-- ============ 三合一搜索框（复用组件） ============ -->
+  <TriSearch />
 
   <!-- ============ 纯前端真工具 ============ -->
   <h2 class="section-title"><span>⚡ 在线测试工具</span></h2>
@@ -90,34 +72,6 @@ const externalTools = [
 </BaseLayout>
 
 <script>
-  // ============ 三合一搜索 ============
-  const ENGINE_URLS: Record<string, string> = {
-    bing: 'https://www.bing.com/search?q=',
-    baidu: 'https://www.baidu.com/s?wd=',
-    google: 'https://www.google.com/search?q=',
-  };
-  const ENGLISH_LABEL: Record<string, string> = { bing: 'Bing', baidu: '百度', google: 'Google' };
-  let engine = 'bing';
-  const tabs = document.querySelectorAll('.search-tab');
-  const input = document.getElementById('global-search-input') as HTMLInputElement;
-  const form = document.getElementById('global-search') as HTMLFormElement;
-
-  tabs.forEach((tab) => {
-    (tab as HTMLElement).addEventListener('click', () => {
-      engine = (tab as HTMLElement).dataset.engine!;
-      tabs.forEach((t) => t.classList.remove('active'));
-      (tab as HTMLElement).classList.add('active');
-      input.placeholder = `用 ${ENGLISH_LABEL[engine]} 搜索…`;
-    });
-  });
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const q = input.value.trim();
-    if (!q) return;
-    window.open(ENGINE_URLS[engine] + encodeURIComponent(q), '_blank');
-  });
-
   // ============ 工具弹层 ============
   const tools: Record<string, string> = {
     badpixel: 'badpixel-tool',
@@ -305,71 +259,48 @@ const externalTools = [
 </script>
 
 <style>
-  /* 三合一搜索 */
-  .tools-search { margin-bottom: 28px; }
-  .search-tabs {
-    display: inline-flex;
-    gap: 6px;
-    background: var(--bg-soft);
-    padding: 5px;
-    border-radius: 999px;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-  }
-  .search-tab {
-    border: none;
-    background: transparent;
-    padding: 7px 20px;
-    border-radius: 999px;
-    cursor: pointer;
-    color: var(--fg-muted);
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-  .search-tab.active {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: #fff;
-  }
-  .tools-search-form {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    max-width: 560px;
-    margin: 0 auto;
-  }
-  .tools-search-form .search-box { flex: 1; }
-
   /* 工具网格 */
   .tool-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 16px;
     margin: 8px 0 28px;
   }
   .tool-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 20px 14px;
+    gap: 7px;
+    padding: 24px 16px 20px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--bg);
     color: var(--fg);
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.22s;
     box-shadow: var(--shadow);
   }
   .tool-card:hover {
     border-color: var(--accent);
     box-shadow: var(--shadow-lg);
-    transform: translateY(-3px);
+    transform: translateY(-4px);
     text-decoration: none;
   }
-  .tool-icon { font-size: 1.9rem; }
+  .tool-icon {
+    font-size: 1.7rem;
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent-soft), var(--bg-soft));
+    border: 1px solid var(--border);
+    margin-bottom: 2px;
+  }
   .tool-name { font-weight: 700; font-size: 0.98rem; }
-  .tool-desc { font-size: 0.78rem; color: var(--fg-muted); line-height: 1.4; }
+  .tool-desc { font-size: 0.78rem; color: var(--fg-muted); line-height: 1.45; }
 
   /* 弹层 */
   .tool-overlay {
