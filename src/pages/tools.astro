@@ -23,16 +23,6 @@ const externalTools = [
   <!-- ============ 三合一搜索框（复用组件） ============ -->
   <TriSearch />
 
-  <!-- ============ 纯前端真工具 ============ -->
-  <h2 class="section-title"><span>⚡ 在线测试工具</span></h2>
-  <div class="tool-grid">
-    <button class="tool-card" data-tool="keyboard" type="button">
-      <span class="tool-icon">⌨️</span>
-      <span class="tool-name">键盘测试</span>
-      <span class="tool-desc">检测每个按键是否正常</span>
-    </button>
-  </div>
-
   <!-- ============ 外部工具导航 ============ -->
   <h2 class="section-title"><span>🌐 数据与资源</span></h2>
   <div class="tool-grid">
@@ -53,73 +43,6 @@ const externalTools = [
     }
   </div>
 </BaseLayout>
-
-<script>
-  // ============ 工具弹层（仅键盘测试为本地实现，其余已改为外链） ============
-  const PANELS: Record<string, { title: string; html: string }> = {
-    keyboard: {
-      title: '键盘测试',
-      html: `
-        <p class="muted">按下任意按键，会显示按键码。按住不放可以测试是否粘连。</p>
-        <div class="kb-stage" id="kb-stage">等待按键…</div>`,
-    },
-  };
-
-  function openTool(name: string) {
-    const P = PANELS[name];
-    if (!P) return;
-    const overlay = document.createElement('div');
-    overlay.className = 'tool-overlay';
-    overlay.innerHTML = `
-      <div class="tool-modal">
-        <div class="tool-modal-head">
-          <h3>${P.title}</h3>
-          <button class="tool-close" type="button">✕</button>
-        </div>
-        <div class="tool-modal-body">${P.html}</div>
-      </div>`;
-    document.body.appendChild(overlay);
-    // 关闭：点右上角✕ 或点背景
-    const close = () => {
-      const handler = (overlay as any).__cleanup;
-      if (typeof handler === 'function') handler();
-      overlay.remove();
-    };
-    overlay.querySelector('.tool-close')!.addEventListener('click', close);
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) close();
-    });
-    // Esc 关闭
-    const escHandler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close();
-    };
-    document.addEventListener('keydown', escHandler);
-    (overlay as any).__cleanup = () => document.removeEventListener('keydown', escHandler);
-    initTool(name, overlay);
-  }
-
-  // 工具初始化
-  function initTool(name: string, overlay: HTMLElement) {
-    if (name === 'keyboard') {
-      const stage = overlay.querySelector('#kb-stage') as HTMLElement;
-      const handler = (e: KeyboardEvent) => {
-        e.preventDefault();
-        stage.innerHTML = `键码：<b>${e.keyCode}</b> · 字符：<b>${e.key}</b>`;
-      };
-      document.addEventListener('keydown', handler);
-      // 记录清理函数，关闭弹层时移除监听
-      const prevCleanup = (overlay as any).__cleanup;
-      (overlay as any).__cleanup = () => {
-        if (typeof prevCleanup === 'function') prevCleanup();
-        document.removeEventListener('keydown', handler);
-      };
-    }
-  }
-
-  document.querySelectorAll<HTMLElement>('.tool-card[data-tool]').forEach((card) => {
-    card.addEventListener('click', () => openTool(card.dataset.tool!));
-  });
-</script>
 
 <style>
   /* 工具网格 */
@@ -164,44 +87,4 @@ const externalTools = [
   }
   .tool-name { font-weight: 700; font-size: 0.98rem; }
   .tool-desc { font-size: 0.78rem; color: var(--fg-muted); line-height: 1.45; }
-
-  /* 弹层 */
-  .tool-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.5);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .tool-modal {
-    background: var(--bg);
-    border-radius: var(--radius);
-    max-width: 480px;
-    width: 100%;
-    box-shadow: var(--shadow-lg);
-    overflow: hidden;
-  }
-  .tool-modal-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .tool-modal-head h3 { margin: 0; font-size: 1.1rem; }
-  .tool-close {
-    background: none; border: none; font-size: 1.2rem;
-    cursor: pointer; color: var(--fg-muted);
-  }
-  .tool-modal-body { padding: 20px; }
-
-  /* 键盘 */
-  .kb-stage {
-    min-height: 120px; border: 2px dashed var(--border);
-    border-radius: 10px; display: flex; align-items: center;
-    justify-content: center; font-size: 1.2rem; color: var(--fg-muted);
-  }
 </style>
