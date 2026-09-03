@@ -20,18 +20,31 @@ export const siteConfig = {
 };
 
 // =====================================================
-// 评论系统配置（Giscus，基于 GitHub Discussions）
-// 接入步骤：
-//  1. GitHub 上把博客仓库设为 public
-//  2. 仓库 Settings → Features 打开 Discussions
-//  3. 安装 giscus app：https://github.com/apps/giscus
-//  4. 到 https://giscus.app 生成 data-repo / data-repo-id /
-//     data-category / data-category-id，填到下面
-//  5. 留空 = 评论框显示“未配置”提示，不影响其他功能
+// 评论系统配置
+//
+// 【当前方案】Artalk —— 自托管评论系统（推荐）
+//   支持：邮箱验证码登录、仅登录可评论、站长管理后台
+//   部署：见项目根目录 DEPLOY_ARTALK.md 手册
+//   完成后把 server 和 site 填到下面即可：
+//
+//   export const commentConfig = {
+//     provider: 'artalk',
+//     server: 'https://你的artalk服务地址',  // 例如 https://artalk-xxx.zeabur.app
+//     site: '张静中的博客',                  // 与你部署时设置的 site 同名
+//   };
+//
+// 【备选】Giscus（GitHub Discussions）：
+//   1. GitHub 仓库 Settings → Features 开启 Discussions
+//   2. 安装 giscus app：https://github.com/apps/giscus
+//   3. 到 https://giscus.app 生成 repo/repoId/categoryId
 // =====================================================
 export const commentConfig = {
-  provider: 'giscus' as 'giscus' | 'none',
-  repo: '', // 例：'your-name/my-blog'
+  provider: 'artalk' as 'artalk' | 'giscus' | 'none',
+  // --- Artalk 配置（填好后评论即可用）---
+  artalkServer: '', // 例：'https://artalk-xxx.zeabur.app'
+  artalkSite: '张静中的博客',
+  // --- Giscus 配置（备选方案）---
+  repo: '',
   repoId: '',
   category: 'Announcements',
   categoryId: '',

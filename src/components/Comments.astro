@@ -6,47 +6,108 @@ interface Props {
   title: string;
 }
 const { slug, title } = Astro.props;
-const enabled =
+
+// 判断当前启用哪种评论
+const useArtalk =
+  commentConfig.provider === 'artalk' && commentConfig.artalkServer !== '';
+const useGiscus =
   commentConfig.provider === 'giscus' &&
   commentConfig.repo !== '' &&
   commentConfig.repoId !== '' &&
   commentConfig.categoryId !== '';
+const anyEnabled = useArtalk || useGiscus;
 ---
 
 <section class="comments" data-comments-section data-slug={slug}>
   <h2 style="margin-top: 2em;">💬 评论</h2>
 
   {
-    !enabled && (
+    !anyEnabled && (
       <div class="card muted" style="font-size:.9rem">
         <p style="margin:0 0 6px">
           📌 评论功能尚未启用。当前为占位提示。
         </p>
         <p style="margin:0">
-          接入步骤（约 5 分钟，免费）：① 将博客仓库设为 public 并在仓库
-          Settings 中开启 <b>Discussions</b>；② 安装{' '}
-          <a href="https://github.com/apps/giscus" target="_blank" rel="noopener">giscus App</a>
-          ；③ 在 <a href="https://giscus.app" target="_blank" rel="noopener">giscus.app</a>{' '}
-          生成配置；④ 填入 <code>src/site.config.ts</code> 的
-          <code> commentConfig</code> 后重新部署即可生效。
+          接入步骤见项目根目录 <code>DEPLOY_ARTALK.md</code>：部署 Artalk
+          评论服务后，把服务器地址填入 <code>src/site.config.ts</code> 的
+          <code>commentConfig.artalkServer</code>，重新部署即可生效。
+          支持邮箱验证码登录、仅登录可评论、站长管理后台。
         </p>
       </div>
     )
   }
 
-  {
-    enabled && (
-      <div class="card" data-giscus-container>
-        <!-- Giscus 由下方脚本注入 -->
-      </div>
-    )
-  }
+  <!-- Artalk 挂载点 -->
+  {useArtalk && <div class="card" id="artalk-comments"></div>}
+
+  <!-- Giscus 挂载点（备选） -->
+  {useGiscus && <div class="card" data-giscus-container></div>}
 </section>
 
 {
-  enabled && (
+  useArtalk && (
     <script is:inline>
-      // giscus 加载配置：改 site.config.ts 即可，无需动这里
+      // Artalk 前端加载：改 site.config.ts 即可，无需动这里
+      const artalkServer = '{commentConfig.artalkServer}';
+      const artalkSite = '{commentConfig.artalkSite}';
+      const pageKey = '{slug}';
+      const pageTitle = '{title}';
+
+      function loadArtalk() {
+        const container = document.getElementById('artalk-comments');
+        if (!container) return;
+        // 加载 Artalk CSS + JS（静态资源走 CDN）
+        if (!document.getElementById('artalk-css')) {
+          const css = document.createElement('link');
+          css.id = 'artalk-css';
+          css.rel = 'stylesheet';
+          css.href = 'https://unpkg.com/artalk@2/dist/Artalk.css';
+          document.head.appendChild(css);
+        }
+        if (window.Artalk) {
+          initArtalk();
+        } else {
+          const s = document.createElement('script');
+          s.src = 'https://unpkg.com/artalk@2/dist/Artalk.js';
+          s.async = true;
+          s.onload = initArtalk;
+          document.body.appendChild(s);
+        }
+      }
+
+      function initArtalk() {
+        if (window.__artalkInited) return;
+        if (!window.Artalk) return;
+        window.__artalkInited = true;
+        const artalk = new window.Artalk({
+          el: '#artalk-comments',
+          pageKey: pageKey,
+          pageTitle: pageTitle,
+          server: artalkServer,
+          site: artalkSite,
+          darkMode: document.documentElement.getAttribute('data-theme') === 'dark',
+          // 强制登录后才可评论（配合服务端 trust 配置）
+          // 具体以后端 artalk.yml 设置为准
+        });
+        // 监听主题切换，同步 Artalk 暗色模式
+        const mo = new MutationObserver(() => {
+          const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+          if (artalk) artalk.setDarkMode(dark);
+        });
+        mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      }
+
+      window.addEventListener('load', loadArtalk);
+      // SPA/立即执行兜底
+      if (document.readyState === 'complete') loadArtalk();
+    </script>
+  )
+}
+
+{
+  useGiscus && (
+    <script is:inline>
+      // giscus 加载配置（备选方案）
       const giscusConfig = {
         repo: '{commentConfig.repo}',
         repoId: '{commentConfig.repoId}',
