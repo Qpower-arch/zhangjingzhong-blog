@@ -1,13 +1,14 @@
 ---
 // 三合一搜索框组件：Bing / 百度 / Google
-// 可在首页、工具箱等任意页面复用
+// iOS 风格滑动滑块切换（像苹果手机关机滑动那样丝滑）
 const { compact = false } = Astro.props;
 ---
 
 <div class:list={['tri-search', { 'tri-search-compact': compact }]}>
   <div class="tri-search-head">
     <span>🔎 <b>三合一搜索</b></span>
-    <div class="search-tabs" role="tablist">
+    <div class="search-tabs" role="tablist" data-search-tabs>
+      <span class="search-thumb" data-search-thumb aria-hidden="true"></span>
       <button class="search-tab active" data-engine="bing" type="button">Bing</button>
       <button class="search-tab" data-engine="baidu" type="button">百度</button>
       <button class="search-tab" data-engine="google" type="button">Google</button>
@@ -35,13 +36,40 @@ const { compact = false } = Astro.props;
   const input = document.getElementById('global-search-input') as HTMLInputElement;
   const tabs = document.querySelectorAll('.search-tab');
   const form = document.getElementById('global-search') as HTMLFormElement;
+  const thumb = document.querySelector('[data-search-thumb]') as HTMLElement | null;
+  const tabsWrap = document.querySelector('[data-search-tabs]') as HTMLElement | null;
   let engine = 'bing';
 
+  // 移动滑块到指定 tab
+  function moveThumb(tab: HTMLElement) {
+    if (!thumb || !tabsWrap) return;
+    const tabRect = tab.getBoundingClientRect();
+    const wrapRect = tabsWrap.getBoundingClientRect();
+    const left = tabRect.left - wrapRect.left;
+    thumb.style.width = `${tabRect.width}px`;
+    thumb.style.transform = `translateX(${left}px)`;
+  }
+
+  // 初始化滑块位置
+  function initThumb() {
+    const active = document.querySelector('.search-tab.active') as HTMLElement | null;
+    if (active) {
+      // 先无动画定位，再启用过渡
+      if (thumb) thumb.style.transition = 'none';
+      moveThumb(active);
+      requestAnimationFrame(() => {
+        if (thumb) thumb.style.transition = '';
+      });
+    }
+  }
+
   tabs.forEach((t) => {
-    (t as HTMLElement).addEventListener('click', () => {
-      engine = (t as HTMLElement).dataset.engine!;
+    const tab = t as HTMLElement;
+    tab.addEventListener('click', () => {
+      engine = tab.dataset.engine!;
       tabs.forEach((x) => x.classList.remove('active'));
-      (t as HTMLElement).classList.add('active');
+      tab.classList.add('active');
+      moveThumb(tab);
       input.placeholder = `用 ${LABEL[engine]} 搜索…`;
     });
   });
@@ -52,11 +80,18 @@ const { compact = false } = Astro.props;
     if (!q) return;
     window.open(ENGINE_URLS[engine] + encodeURIComponent(q), '_blank');
   });
+
+  // 窗口尺寸变化/字体加载后重新定位
+  window.addEventListener('resize', initThumb);
+  if (document.fonts) {
+    document.fonts.ready.then(initThumb);
+  }
+  initThumb();
 </script>
 
 <style>
   .tri-search {
-    background: var(--bg);
+    background: var(--bg-elevated);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
@@ -82,15 +117,33 @@ const { compact = false } = Astro.props;
     gap: 10px;
   }
   .tools-search-form .search-box { flex: 1; }
+
+  /* iOS 风格滑动滑块 */
   .search-tabs {
+    position: relative;
     display: inline-flex;
-    gap: 6px;
+    gap: 4px;
     background: var(--bg-soft);
-    padding: 5px;
+    padding: 4px;
     border-radius: 999px;
     border: 1px solid var(--border);
   }
+  .search-thumb {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 2px 8px hsl(var(--hue) 70% 50% / 0.35);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+      width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    z-index: 0;
+  }
   .search-tab {
+    position: relative;
+    z-index: 1;
     border: none;
     background: transparent;
     padding: 6px 16px;
@@ -99,9 +152,10 @@ const { compact = false } = Astro.props;
     color: var(--fg-muted);
     font-weight: 600;
     font-size: 0.88rem;
+    transition: color 0.3s var(--ease);
+    white-space: nowrap;
   }
   .search-tab.active {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: #fff;
   }
 </style>

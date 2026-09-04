@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ViewTransitions } from 'astro:transitions';
 import { siteConfig } from '../site.config';
 import { withBase } from '../lib/base';
 import Header from '../components/Header.astro';
@@ -33,6 +34,7 @@ const isHome = Astro.url.pathname === '/';
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <ViewTransitions />
     <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <link
       rel="alternate"
