@@ -21,27 +21,25 @@ const featuredResources = (await getCollection('resources'))
 
 <BaseLayout wide>
   <section class="hero">
-    <h1>👋 你好，我是 <span class="grad">{siteConfig.author}</span></h1>
+    <h1><span class="grad">{siteConfig.author}</span> 的博客</h1>
     <p class="hero-greet">
-      {siteConfig.description} 这里是我的自留地：用文章记录走过的路，
-      用时间线追踪学习进度，把好用的软件资源整理成册。
+      {siteConfig.description}
     </p>
     <div class="hero-actions">
-      <a class="btn btn-primary" href={withBase('/blog')}>📖 阅读文章</a>
-      <a class="btn" href={withBase('/progress')}>📈 学习进度</a>
-      <a class="btn" href={withBase('/resources')}>📦 软件资源</a>
+      <a class="btn btn-primary" href={withBase('/blog')}>阅读文章</a>
+      <a class="btn" href={withBase('/tools')}>工具箱</a>
+      <a class="btn" href={withBase('/progress')}>学习进度</a>
     </div>
   </section>
 
   <TriSearch compact />
 
   <!-- 网站功能快捷入口：让用户一眼直达各板块 -->
-  <h2 class="section-title"><span>🗂️ 功能导航</span></h2>
-  <div class="quick-nav">
+  <div class="quick-nav" style="margin-top:16px;">
     <a class="quick-card" href={withBase('/blog')}>
       <span class="quick-icon">📖</span>
       <span class="quick-title">文章</span>
-      <span class="quick-desc">阅读全部文章与教程</span>
+      <span class="quick-desc">全部文章与教程</span>
     </a>
     <a class="quick-card" href={withBase('/tools')}>
       <span class="quick-icon">🧰</span>
@@ -61,7 +59,7 @@ const featuredResources = (await getCollection('resources'))
   </div>
 
   <h2 class="section-title">
-    <span>🆕 最新文章</span>
+    <span>最新文章</span>
     <a class="muted" style="font-size:.9rem; font-weight:400" href={withBase('/blog')}>查看全部 →</a>
   </h2>
   <div class="post-list">
@@ -90,7 +88,7 @@ const featuredResources = (await getCollection('resources'))
   </div>
 
   <h2 class="section-title">
-    <span>📈 学习进度（最近）</span>
+    <span>学习进度</span>
     <a class="muted" style="font-size:.9rem; font-weight:400" href={withBase('/progress')}>完整时间线 →</a>
   </h2>
   <div class="timeline">
@@ -110,7 +108,7 @@ const featuredResources = (await getCollection('resources'))
   </div>
 
   <h2 class="section-title">
-    <span>📦 精选资源</span>
+    <span>精选资源</span>
     <a class="muted" style="font-size:.9rem; font-weight:400" href={withBase('/resources')}>全部资源 →</a>
   </h2>
   <div class="post-list">
