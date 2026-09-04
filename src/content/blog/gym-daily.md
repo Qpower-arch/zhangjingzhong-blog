@@ -12,7 +12,7 @@ category: '随想'
 
 从 **8 月 18 日**开始，到今天 **9 月 4 日**，我已经坚持健身 **18 天**了。这段时间每天保持规律的运动，慢慢养成了习惯。
 
-![跑步机训练记录 1](/images/gym-treadmill-1.png)
+![跑步机训练记录 1](/zhangjingzhong-blog/images/gym-treadmill-1.png)
 
 这是其中一天的跑步机训练记录——坡度 15、速度 8.8，走了一段时间。
 
@@ -20,7 +20,7 @@ category: '随想'
 
 现在主要是有氧训练，时间大约 **50 分钟**。这是另一天的记录：
 
-![跑步机训练记录 2](/images/gym-treadmill-2.png)
+![跑步机训练记录 2](/zhangjingzhong-blog/images/gym-treadmill-2.png)
 
 那天走了 **50:20**，距离 **3.33 km**，坡度 **15**，速度 **4.0**，消耗 **453 千卡**。
 
