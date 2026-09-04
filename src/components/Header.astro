@@ -26,7 +26,9 @@ function isActive(href: string, path: string): boolean {
       <span class="logo-icon">{siteConfig.shortName[0]}</span>
       <span>{siteConfig.shortName}</span>
     </a>
-    <nav class="nav">
+
+    <!-- 桌面导航 -->
+    <nav class="nav nav-desktop">
       {
         links.map((l) => (
           <a
@@ -37,9 +39,66 @@ function isActive(href: string, path: string): boolean {
           </a>
         ))
       }
-      <button class="icon-btn" data-theme-toggle title="切换深浅色" type="button">
+      <button class="icon-btn" data-theme-toggle title="切换深浅色" type="button" aria-label="切换深浅色">
         🌓
       </button>
     </nav>
+
+    <!-- 移动端：汉堡按钮 + 主题切换 -->
+    <div class="nav-mobile-actions">
+      <button class="icon-btn" data-theme-toggle title="切换深浅色" type="button" aria-label="切换深浅色">
+        🌓
+      </button>
+      <button class="icon-btn hamburger" type="button" aria-label="打开菜单" data-menu-toggle>
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 移动端下拉菜单 -->
+  <div class="mobile-menu" data-mobile-menu>
+    <nav class="mobile-nav">
+      {
+        links.map((l) => (
+          <a
+            href={withBase(l.href)}
+            class:list={[{ active: isActive(l.href, currentPath) }]}
+            data-menu-link
+          >
+            {l.label}
+          </a>
+        ))
+      }
+    </nav>
   </div>
 </header>
+
+<script>
+  const toggleBtn = document.querySelector('[data-menu-toggle]');
+  const menu = document.querySelector('[data-mobile-menu]');
+
+  toggleBtn?.addEventListener('click', () => {
+    const open = menu?.classList.toggle('open');
+    toggleBtn.classList.toggle('open', open ?? false);
+    toggleBtn.setAttribute('aria-expanded', String(open));
+  });
+
+  // 点击菜单链接后自动收起
+  document.querySelectorAll('[data-menu-link]').forEach((link) => {
+    link.addEventListener('click', () => {
+      menu?.classList.remove('open');
+      toggleBtn?.classList.remove('open');
+    });
+  });
+
+  // 点击菜单外关闭
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest('.site-header')) {
+      menu?.classList.remove('open');
+      toggleBtn?.classList.remove('open');
+    }
+  });
+</script>
