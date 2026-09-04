@@ -1,5 +1,5 @@
 ---
-date: 2025-02-01
+date: 2026-08-25
 title: 'NumPy / Pandas 数据分析'
 status: '进行中'
 tags: ['Python', '数据分析']

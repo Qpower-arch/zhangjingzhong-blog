@@ -1,5 +1,5 @@
 ---
-date: 2025-09-05
+date: 2026-09-03
 title: 'Java 基础学习'
 status: '计划中'
 tags: ['Java', '编程']

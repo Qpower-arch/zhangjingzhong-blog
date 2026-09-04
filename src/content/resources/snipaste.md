@@ -6,7 +6,7 @@ category: '效率工具'
 license: '个人免费'
 platform: ['Windows', 'macOS']
 featured: false
-addedDate: 2025-01-15
+addedDate: 2026-08-20
 ---
 
 免费版完全够用，官网直接下载，无捆绑。

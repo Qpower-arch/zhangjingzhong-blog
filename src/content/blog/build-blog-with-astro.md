@@ -1,7 +1,7 @@
 ---
 title: '用 Astro 搭建个人博客的完整记录'
 description: '从零搭建本博客的技术笔记：为什么选 Astro、目录结构、内容管理、部署。'
-pubDate: 2025-02-15
+pubDate: 2026-08-28
 tags: ['教程', 'Astro', '博客']
 category: '教程'
 ---

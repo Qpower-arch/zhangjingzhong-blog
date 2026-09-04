@@ -6,7 +6,7 @@ category: '开发工具'
 license: '免费开源'
 platform: ['Windows', 'Linux']
 featured: false
-addedDate: 2025-09-05
+addedDate: 2026-09-05
 ---
 
 把 MinGW 的 bin 目录加进 PATH 后，终端里就能用 gcc 编译 C 语言。

@@ -6,7 +6,7 @@ category: '效率工具'
 license: '免费开源'
 platform: ['Windows', 'Linux']
 featured: false
-addedDate: 2025-01-20
+addedDate: 2026-08-22
 ---
 
 官网右上角选最新版本下载，注意区分 32/64 位。

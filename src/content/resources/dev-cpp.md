@@ -6,7 +6,7 @@ category: '开发工具'
 license: '免费开源'
 platform: ['Windows']
 featured: false
-addedDate: 2025-09-05
+addedDate: 2026-09-05
 ---
 
 C 语言入门利器，安装即用，无需配置环境变量。

@@ -6,7 +6,7 @@ category: '效率工具'
 license: '个人免费'
 platform: ['Windows', 'macOS', 'Linux', '移动端']
 featured: false
-addedDate: 2025-01-15
+addedDate: 2026-08-20
 ---
 
 笔记全存在本地文件夹里，永不担心跑路。

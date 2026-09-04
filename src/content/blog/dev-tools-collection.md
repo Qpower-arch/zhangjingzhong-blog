@@ -1,8 +1,8 @@
 ---
 title: '程序员必备效率工具清单（附下载链接）'
 description: '开发、写作、效率三类共 8 个工具，全部亲测，附官方下载链接。'
-pubDate: 2025-02-01
-updatedDate: 2025-03-10
+pubDate: 2026-08-25
+updatedDate: 2026-08-28
 tags: ['软件', '效率', '工具']
 category: '资源'
 ---

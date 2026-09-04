@@ -1,7 +1,7 @@
 ---
-title: '2025 学习路线图：Python + 前端 + 数学建模'
+title: '2026 学习路线图：Python + 前端 + 数学建模'
 description: '今年的学习规划：主语言 Python、Web 前端入门、数学建模备赛，三线并进。'
-pubDate: 2025-01-10
+pubDate: 2026-08-20
 tags: ['规划', 'Python', '前端', '数学建模']
 category: '学习'
 ---

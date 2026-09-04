@@ -1,8 +1,8 @@
 ---
 title: '你好，我的博客开张了！'
 description: '第一篇博文：这个博客要做什么、有哪些栏目、如何投稿/评论。'
-pubDate: 2025-01-01
-updatedDate: 2025-01-05
+pubDate: 2026-08-18
+updatedDate: 2026-08-20
 tags: ['公告', '博客']
 category: '随想'
 ---
@@ -40,7 +40,7 @@ category: '随想'
 ---
 title: '我的新文章'
 description: '一句话摘要'
-pubDate: 2025-01-01
+pubDate: 2026-08-18
 tags: ['教程']
 category: '教程'
 ---

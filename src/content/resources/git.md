@@ -6,7 +6,7 @@ category: '开发工具'
 license: '免费'
 platform: ['Windows', 'macOS', 'Linux']
 featured: true
-addedDate: 2025-01-10
+addedDate: 2026-08-18
 ---
 
 Windows 用户下载安装版即可，装完在终端里配置 user.name / user.email。

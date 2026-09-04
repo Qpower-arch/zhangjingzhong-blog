@@ -6,7 +6,7 @@ category: '开发工具'
 license: '免费'
 platform: ['Windows', 'macOS', 'Linux']
 featured: true
-addedDate: 2025-01-10
+addedDate: 2026-08-18
 ---
 
 编辑器首选。装好 Python 官方扩展 + 中文语言包即可开箱即用。

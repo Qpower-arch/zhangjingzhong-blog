@@ -6,7 +6,7 @@ category: '效率工具'
 license: '免费开源'
 platform: ['Windows']
 featured: false
-addedDate: 2025-01-20
+addedDate: 2026-08-22
 ---
 
 装完后在系统托盘中打开 PowerToys 设置面板逐个启用想要的模块。

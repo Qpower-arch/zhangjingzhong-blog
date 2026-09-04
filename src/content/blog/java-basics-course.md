@@ -1,7 +1,7 @@
 ---
 title: 'Java 基础入门课程（含资源）'
 description: '从零开始学 Java：环境搭建、面向对象、常用类库的完整学习路线 + 推荐资源。'
-pubDate: 2025-09-05
+pubDate: 2026-09-03
 tags: ['Java', '编程', '学习']
 category: '教程'
 ---

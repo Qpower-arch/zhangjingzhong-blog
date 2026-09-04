@@ -6,7 +6,7 @@ category: '开发工具'
 license: '社区版免费'
 platform: ['Windows', 'macOS', 'Linux']
 featured: true
-addedDate: 2025-09-05
+addedDate: 2026-09-05
 ---
 
 社区版完全够 Java 学习用，代码提示、调试功能都很强。

@@ -1,5 +1,5 @@
 ---
-date: 2025-01-05
+date: 2026-08-18
 title: 'Python 基础语法学习'
 status: '已完成'
 tags: ['Python']

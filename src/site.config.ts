@@ -12,7 +12,7 @@ export const siteConfig = {
   // 作者署名
   author: '张静中',
   // 备案号/版权行（可留空）
-  copyright: '© 2025 张静中',
+  copyright: '© 2026 张静中',
   // GitHub 用户名（用于社交链接，可留空隐藏）
   github: 'Qpower-arch',
   // 语言

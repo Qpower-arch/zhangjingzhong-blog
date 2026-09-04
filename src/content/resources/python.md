@@ -6,7 +6,7 @@ category: '开发工具'
 license: '免费'
 platform: ['Windows', 'macOS', 'Linux']
 featured: true
-addedDate: 2025-01-10
+addedDate: 2026-08-18
 ---
 
 安装时务必勾选 "Add Python to PATH"。装 3.11+ 版本即可。

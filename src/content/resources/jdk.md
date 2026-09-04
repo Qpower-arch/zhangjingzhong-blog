@@ -6,7 +6,7 @@ category: '开发工具'
 license: '免费'
 platform: ['Windows', 'macOS', 'Linux']
 featured: false
-addedDate: 2025-09-05
+addedDate: 2026-09-05
 ---
 
 安装后配置 JAVA_HOME 和 PATH 环境变量即可开始 Java 开发。
