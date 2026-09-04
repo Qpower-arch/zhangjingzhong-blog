@@ -60,6 +60,8 @@ const isHome = Astro.url.pathname === '/';
     </style>
   </head>
   <body>
+    <!-- 顶部滚动进度条 -->
+    <div class="scroll-progress" data-scroll-progress></div>
     <Header currentPath={Astro.url.pathname} />
     <main class:list={['main', 'container', { wide }]}>
       <slot />
@@ -78,6 +80,38 @@ const isHome = Astro.url.pathname === '/';
           localStorage.setItem('theme', next);
         } catch (err) {}
       });
+
+      // 顶部滚动进度条
+      const progressBar = document.querySelector('[data-scroll-progress]');
+      if (progressBar) {
+        const updateProgress = () => {
+          const h = document.documentElement;
+          const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
+          (progressBar as HTMLElement).style.transform = `scaleX(${scrolled})`;
+        };
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        updateProgress();
+      }
+
+      // 滚动渐入动画（IntersectionObserver）
+      const revealEls = document.querySelectorAll(
+        '.post-card, .post-item, .quick-card, .tl-item, .card, .resource-card'
+      );
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+        );
+        revealEls.forEach((el) => el.classList.add('reveal'));
+        revealEls.forEach((el) => io.observe(el));
+      }
     </script>
   </body>
 </html>
