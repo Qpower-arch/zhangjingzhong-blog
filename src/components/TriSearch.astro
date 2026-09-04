@@ -14,11 +14,11 @@ const { compact = false } = Astro.props;
       <button class="search-tab" data-engine="google" type="button">Google</button>
     </div>
   </div>
-  <form class="tools-search-form" id="global-search">
+  <form class="tools-search-form" data-search-form>
     <input
       class="search-box"
       type="search"
-      id="global-search-input"
+      data-search-input
       placeholder="输入关键词，回车搜索…"
       autocomplete="off"
     />
@@ -33,60 +33,73 @@ const { compact = false } = Astro.props;
     google: 'https://www.google.com/search?q=',
   };
   const LABEL: Record<string, string> = { bing: 'Bing', baidu: '百度', google: 'Google' };
-  const input = document.getElementById('global-search-input') as HTMLInputElement;
-  const tabs = document.querySelectorAll('.search-tab');
-  const form = document.getElementById('global-search') as HTMLFormElement;
-  const thumb = document.querySelector('[data-search-thumb]') as HTMLElement | null;
-  const tabsWrap = document.querySelector('[data-search-tabs]') as HTMLElement | null;
   let engine = 'bing';
 
-  // 移动滑块到指定 tab
-  function moveThumb(tab: HTMLElement) {
-    if (!thumb || !tabsWrap) return;
-    const tabRect = tab.getBoundingClientRect();
-    const wrapRect = tabsWrap.getBoundingClientRect();
-    const left = tabRect.left - wrapRect.left;
-    thumb.style.width = `${tabRect.width}px`;
-    thumb.style.transform = `translateX(${left}px)`;
-  }
-
-  // 初始化滑块位置
-  function initThumb() {
+  // 重新初始化滑块位置（导航到新页面时调用）
+  function syncThumb() {
+    const wrap = document.querySelector('[data-search-tabs]') as HTMLElement | null;
+    const thumb = document.querySelector('[data-search-thumb]') as HTMLElement | null;
     const active = document.querySelector('.search-tab.active') as HTMLElement | null;
-    if (active) {
-      // 先无动画定位，再启用过渡
-      if (thumb) thumb.style.transition = 'none';
-      moveThumb(active);
+    if (!wrap || !thumb || !active) return;
+    const tabRect = active.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    // 无动画定位
+    thumb.style.transition = 'none';
+    thumb.style.width = `${tabRect.width}px`;
+    thumb.style.transform = `translateX(${tabRect.left - wrapRect.left}px)`;
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (thumb) thumb.style.transition = '';
+        thumb.style.transition = '';
       });
-    }
+    });
   }
 
-  tabs.forEach((t) => {
-    const tab = t as HTMLElement;
-    tab.addEventListener('click', () => {
-      engine = tab.dataset.engine!;
-      tabs.forEach((x) => x.classList.remove('active'));
-      tab.classList.add('active');
-      moveThumb(tab);
-      input.placeholder = `用 ${LABEL[engine]} 搜索…`;
-    });
+  function moveThumbTo(tab: HTMLElement) {
+    const wrap = document.querySelector('[data-search-tabs]') as HTMLElement | null;
+    const thumb = document.querySelector('[data-search-thumb]') as HTMLElement | null;
+    if (!wrap || !thumb) return;
+    const tabRect = tab.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    thumb.style.width = `${tabRect.width}px`;
+    thumb.style.transform = `translateX(${tabRect.left - wrapRect.left}px)`;
+  }
+
+  // 事件委托：切换引擎（绑定在 document，跨页面软导航仍有效）
+  document.addEventListener('click', (e) => {
+    const tab = (e.target as HTMLElement).closest('.search-tab') as HTMLElement | null;
+    if (!tab) return;
+    const wrap = tab.closest('[data-search-tabs]');
+    if (!wrap) return;
+    engine = tab.dataset.engine || 'bing';
+    wrap.querySelectorAll('.search-tab').forEach((x) => x.classList.remove('active'));
+    tab.classList.add('active');
+    moveThumbTo(tab);
+    const input = document.querySelector('[data-search-input]') as HTMLInputElement | null;
+    if (input) input.placeholder = `用 ${LABEL[engine]} 搜索…`;
   });
 
-  form.addEventListener('submit', (e) => {
+  // 事件委托：提交搜索
+  document.addEventListener('submit', (e) => {
+    const form = (e.target as HTMLElement).closest('[data-search-form]');
+    if (!form) return;
     e.preventDefault();
-    const q = input.value.trim();
+    const input = form.querySelector('[data-search-input]') as HTMLInputElement | null;
+    const q = input?.value.trim();
     if (!q) return;
     window.open(ENGINE_URLS[engine] + encodeURIComponent(q), '_blank');
   });
 
-  // 窗口尺寸变化/字体加载后重新定位
-  window.addEventListener('resize', initThumb);
-  if (document.fonts) {
-    document.fonts.ready.then(initThumb);
+  // 初始化 + 页面切换后重新同步
+  function init() {
+    syncThumb();
   }
-  initThumb();
+  init();
+  // View Transitions 软导航后重新同步滑块位置
+  document.addEventListener('astro:page-load', init);
+  window.addEventListener('resize', init);
+  if (document.fonts) {
+    document.fonts.ready.then(init);
+  }
 </script>
 
 <style>
