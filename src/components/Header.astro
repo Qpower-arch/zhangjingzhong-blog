@@ -42,12 +42,18 @@ function isActive(href: string, path: string): boolean {
       <button class="icon-btn" data-theme-toggle title="切换深浅色" type="button" aria-label="切换深浅色">
         🌓
       </button>
+      <button class="icon-btn" data-grid-toggle title="网格背景" type="button" aria-label="切换网格背景">
+        ▦
+      </button>
     </nav>
 
     <!-- 移动端：汉堡按钮 + 主题切换 -->
     <div class="nav-mobile-actions">
       <button class="icon-btn" data-theme-toggle title="切换深浅色" type="button" aria-label="切换深浅色">
         🌓
+      </button>
+      <button class="icon-btn" data-grid-toggle title="网格背景" type="button" aria-label="切换网格背景">
+        ▦
       </button>
       <button class="icon-btn hamburger" type="button" aria-label="打开菜单" data-menu-toggle>
         <span></span>
@@ -100,5 +106,21 @@ function isActive(href: string, path: string): boolean {
       menu?.classList.remove('open');
       toggleBtn?.classList.remove('open');
     }
+  });
+
+  // 网格背景切换
+  function applyGrid(on: boolean) {
+    document.documentElement.classList.toggle('grid-mode', on);
+  }
+  // 读取保存的网格模式
+  try {
+    const g = localStorage.getItem('grid-mode');
+    if (g === '1') applyGrid(true);
+  } catch (e) {}
+  document.querySelectorAll('[data-grid-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const on = document.documentElement.classList.toggle('grid-mode');
+      try { localStorage.setItem('grid-mode', on ? '1' : '0'); } catch (e) {}
+    });
   });
 </script>

@@ -62,26 +62,20 @@ const featuredResources = (await getCollection('resources'))
     <span>最新文章</span>
     <a class="muted" style="font-size:.9rem; font-weight:400" href={withBase('/blog')}>查看全部 →</a>
   </h2>
-  <div class="post-list">
+  <div class="post-grid">
     {
       posts.map((post) => (
-        <article class="post-item">
-          <h3>
-            <a href={withBase(`/blog/${post.id}/`)}>{post.data.title}</a>
-          </h3>
-          <p class="post-excerpt">{post.data.description}</p>
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
-            <div class="tags" style="margin:0;">
-              {
-                post.data.tags.slice(0, 4).map((t) => (
-                  <a class="tag" href={withBase(`/blog?tag=${encodeURIComponent(t)}`)}>{t}</a>
-                ))
-              }
+        <article class="post-card">
+          <a class="post-card-link" href={withBase(`/blog/${post.id}/`)}>
+            <div class="post-card-meta">
+              <span class="tag tag-accent">{post.data.category}</span>
+              <time class="muted mono" datetime={post.data.pubDate.toISOString()}>
+                {formatDate(post.data.pubDate)}
+              </time>
             </div>
-            <time class="muted mono" datetime={post.data.pubDate.toISOString()}>
-              {formatDate(post.data.pubDate)}
-            </time>
-          </div>
+            <h3>{post.data.title}</h3>
+            <p class="post-excerpt">{post.data.description}</p>
+          </a>
         </article>
       ))
     }
