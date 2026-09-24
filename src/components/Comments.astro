@@ -1,5 +1,6 @@
 ---
 import { commentConfig } from '../site.config';
+import { withBase } from '../lib/base';
 
 interface Props {
   slug: string;
@@ -49,7 +50,7 @@ const anyEnabled = useWaline || useArtalk || useGiscus;
 
 {
   useWaline && (
-    <script define:vars={{ walineServer: commentConfig.walineServer, pageKey: slug }}>
+    <script define:vars={{ walineServer: commentConfig.walineServer, pageKey: slug, homeUrl: withBase('/') }}>
       // Waline 加载：用 CDN 引入前端组件
       function initWaline() {
         const container = document.getElementById('waline-container');
@@ -77,17 +78,68 @@ const anyEnabled = useWaline || useArtalk || useGiscus;
         }
 
         function mountWaline() {
+          // ===== 头像策略：QQ 邮箱自动使用 QQ 头像，其他用国内可访问的头像服务 =====
+          function resolveAvatar(comment: any): string {
+            const mail = (comment && comment.mail) || '';
+            // 纯数字 QQ 邮箱 → QQ 官方头像
+            const m = /^(\d{5,11})@qq\.com$/i.exec(mail.trim());
+            if (m) {
+              return 'https://q1.qlogo.cn/g?b=qq&nk=' + m[1] + '&s=100';
+            }
+            // 其他邮箱 → Cravatar（Gravatar 国内镜像）；没有邮箱则用首字母头像
+            if (!mail) {
+              const seed = encodeURIComponent((comment && comment.nick) || 'user');
+              return 'https://api.dicebear.com/7.x/initials/svg?seed=' + seed;
+            }
+            return 'https://cravatar.cn/avatar/';
+          }
+
           new (window as any).Waline({
             el: '#waline-container',
             serverURL: walineServer,
             path: pageKey,
-            meta: ['nick', 'mail'],
+            meta: ['nick', 'mail', 'link'],
             requiredMeta: ['nick'],
             login: 'enable', // 邮箱注册/登录后可评论
             dark: 'auto',
             imageUploader: false,
             pageview: false,
+            avatar: resolveAvatar,
+            search: false,
           });
+
+          // ===== 注册/登录成功后跳转到首页（仅本次会话新登录时触发）=====
+          let jumped = false;
+          function isLoggedIn(): boolean {
+            const box = document.getElementById('waline-container');
+            if (box) {
+              const txt = box.textContent || '';
+              // Waline 登录后会出现「退出」/「登出」入口
+              if (/退出|登出|logout/i.test(txt)) return true;
+            }
+            try {
+              for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i) || '';
+                if (k.toLowerCase().indexOf('waline') >= 0) {
+                  const v = localStorage.getItem(k) || '';
+                  if (v.indexOf('token') >= 0) return true;
+                }
+              }
+            } catch (e) {}
+            return false;
+          }
+
+          const wasLoggedIn = isLoggedIn();
+          const timer = window.setInterval(() => {
+            if (jumped) return;
+            const now = isLoggedIn();
+            if (now && !wasLoggedIn) {
+              jumped = true;
+              window.clearInterval(timer);
+              // 登录/注册成功后回到网站首页
+              window.location.href = homeUrl;
+            }
+          }, 800);
         }
       }
 
