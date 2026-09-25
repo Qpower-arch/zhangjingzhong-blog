@@ -1,0 +1,16 @@
+{
+  "appId": "icu.qpower.blog",
+  "appName": "张静中的博客",
+  "webDir": "dist",
+
+  "server": {
+    "url": "https://qpower-arch.github.io/zhangjingzhong-blog/",
+    "androidScheme": "https"
+  },
+
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

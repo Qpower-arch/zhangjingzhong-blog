@@ -1,0 +1,70 @@
+name: Build Android APK
+
+# 触发方式：
+#  · 手动：到 GitHub 仓库 → Actions → 左侧选「Build Android APK」→ Run workflow
+#  · 自动：当 App 相关配置有改动并推送到 main 时
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/gen-icons.mjs'
+      - '.github/workflows/android.yml'
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装 JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: 配置 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 安装项目依赖
+        run: npm ci || npm install
+
+      - name: 构建网页产物
+        run: npm run build
+
+      - name: 生成图标资源
+        run: npm run icons
+
+      - name: 添加 Android 平台
+        run: npx cap add android
+
+      - name: 同步网页与配置到 Android 工程
+        run: npx cap sync android
+
+      - name: 生成 App 图标与启动图
+        run: npx @capacitor/assets generate --android
+        continue-on-error: true
+
+      - name: 打包 APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: 上传 APK（构建完成后在本页底部下载）
+        uses: actions/upload-artifact@v4
+        with:
+          name: zhangjingzhong-blog-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 90

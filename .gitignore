@@ -3,6 +3,16 @@ dist/
 # generated types
 .astro/
 
+# Capacitor / Android（Android 工程在 CI 里自动生成，不进仓库）
+android/
+# 由 scripts/gen-icons.mjs 生成的 App 资源（CI 里会自动生成）
+resources/
+
+# 本地验证用的截图（不该进仓库）
+check-*.png
+verify-*.png
+test-*.png
+
 # dependencies
 node_modules/
 

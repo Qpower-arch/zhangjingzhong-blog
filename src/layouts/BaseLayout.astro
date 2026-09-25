@@ -45,16 +45,40 @@ const isHome = Astro.url.pathname === '/';
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content={siteConfig.shortName} />
-    <!-- App 模式检测：以独立窗口（PWA）打开时给 html 加 .app-mode -->
+
+    <!-- App 模式检测 -->
     <script is:inline>
-      (function () {
+      // ============ App 模式检测 ============
+      // 命中任一种即给 html 加 .app-mode（用于隐藏「工具箱」并适配刘海屏）：
+      //   1) PWA：从主屏幕图标启动（独立窗口模式）
+      //   2) Capacitor 打包的原生 App：注入了 window.Capacitor
+      (function detectAppMode() {
+        var html = document.documentElement;
+        function mark() {
+          html.classList.add('app-mode');
+        }
         try {
-          var standalone =
-            window.matchMedia('(display-mode: standalone)').matches ||
-            window.matchMedia('(display-mode: fullscreen)').matches ||
-            window.matchMedia('(display-mode: minimal-ui)').matches ||
-            window.navigator.standalone === true;
-          if (standalone) document.documentElement.classList.add('app-mode');
+          // —— PWA 独立窗口，可立即判断 ——
+          if (
+            (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+            (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches) ||
+            (window.matchMedia && window.matchMedia('(display-mode: minimal-ui)').matches) ||
+            window.navigator.standalone === true
+          ) {
+            mark();
+            return;
+          }
+          // —— Capacitor 原生 App：桥接脚本可能晚于本脚本注入，短轮询检测 ——
+          var tries = 0;
+          var timer = setInterval(function () {
+            if (typeof window.Capacitor !== 'undefined') {
+              mark();
+              clearInterval(timer);
+            } else if (++tries > 40) {
+              // 约 4 秒后放弃（说明是普通浏览器访问）
+              clearInterval(timer);
+            }
+          }, 100);
         } catch (e) {}
       })();
     </script>
