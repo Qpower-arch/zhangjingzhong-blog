@@ -38,6 +38,8 @@ const isHome = Astro.url.pathname === '/';
     <!-- ========== PWA（可"添加到主屏幕"，像 App 一样用）========== -->
     <link rel="manifest" href={withBase('/manifest.webmanifest')} />
     <meta name="theme-color" content="#7c3aed" />
+    <!-- Service Worker 的准确地址（由 withBase 生成，避免手拼路径出错） -->
+    <meta name="pwa-sw" content={withBase('/sw.js')} />
     <!-- iOS 专用：加到主屏后全屏运行 -->
     <link rel="apple-touch-icon" href={withBase('/icon-192.png')} />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -104,12 +106,22 @@ const isHome = Astro.url.pathname === '/';
     <script>
       // ============ 注册 Service Worker（PWA：可安装 + 离线访问） ============
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          const base = document.documentElement.dataset.base || '/';
-          navigator.serviceWorker.register(base + 'sw.js', { scope: base }).catch(() => {
-            /* 注册失败不影响正常浏览，静默忽略 */
-          });
-        });
+        const registerSW = () => {
+          // 从 meta 读取由 withBase() 生成的准确地址（避免手拼路径出错）
+          const meta = document.querySelector('meta[name="pwa-sw"]');
+          const swUrl = meta ? meta.getAttribute('content') : null;
+          if (!swUrl) return;
+          // scope 取 sw.js 所在目录（必须以 / 结尾）
+          const scope = swUrl.replace(/sw\.js$/, '');
+          navigator.serviceWorker
+            .register(swUrl, { scope })
+            .catch((err) => {
+              console.warn('[PWA] Service Worker 注册失败：', err);
+            });
+        };
+        // load 可能已经触发过，两种情况都要覆盖
+        if (document.readyState === 'complete') registerSW();
+        else window.addEventListener('load', registerSW);
       }
 
       // 暗色模式切换（Header 按钮触发）
