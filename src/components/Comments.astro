@@ -51,35 +51,63 @@ const anyEnabled = useWaline || useArtalk || useGiscus;
 {
   useWaline && (
     <script define:vars={{ walineServer: commentConfig.walineServer, pageKey: slug, homeUrl: withBase('/') }}>
+      // ===== Waline 前端资源 CDN 列表 =====
+      // 按顺序尝试：国内 unpkg 经常不可达，所以优先用 jsDelivr，再兜底 npmmirror
+      var WALINE_VER = '3.5.7';
+      var WALINE_CDNS = [
+        'https://cdn.jsdelivr.net/npm/@waline/client@' + WALINE_VER + '/dist/',
+        'https://registry.npmmirror.com/@waline/client/' + WALINE_VER + '/files/dist/',
+        'https://unpkg.com/@waline/client@' + WALINE_VER + '/dist/'
+      ];
+
       // Waline 加载：用 CDN 引入前端组件
       function initWaline() {
         const container = document.getElementById('waline-container');
-        if (!container || (window as any).__walineInited) return;
-        (window as any).__walineInited = true;
+        if (!container || window.__walineInited) return;
+        window.__walineInited = true;
 
         // 加载 Waline CSS
         if (!document.getElementById('waline-css')) {
           const css = document.createElement('link');
           css.id = 'waline-css';
           css.rel = 'stylesheet';
-          css.href = 'https://unpkg.com/@waline/client@v3/dist/waline.css';
+          css.href = WALINE_CDNS[0] + 'waline.css';
           document.head.appendChild(css);
         }
 
-        // 加载 Waline JS
-        if ((window as any).Waline) {
-          mountWaline();
-        } else {
-          const s = document.createElement('script');
-          s.src = 'https://unpkg.com/@waline/client@v3/dist/waline.js';
-          s.async = true;
-          s.onload = mountWaline;
-          document.body.appendChild(s);
-        }
+        // 加载 Waline JS：★ 必须用 UMD 版本（waline.umd.js），
+        //   因为 dist/waline.js 是 ES Module，直接用 <script> 加载不会挂载 window.Waline
+        (function loadWalineScript() {
+          var idx = 0;
+          function tryNext() {
+            if (idx >= WALINE_CDNS.length) {
+              console.warn('[Waline] 所有 CDN 均加载失败，评论功能不可用');
+              return;
+            }
+            var s = document.createElement('script');
+            s.src = WALINE_CDNS[idx] + 'waline.umd.js';
+            s.async = true;
+            s.onload = function () {
+              // 只有真正挂载了 Waline.init 才算成功，否则换下一个 CDN
+              if (window.Waline && window.Waline.init) {
+                mountWaline();
+              } else {
+                idx++;
+                tryNext();
+              }
+            };
+            s.onerror = function () {
+              idx++;
+              tryNext();
+            };
+            document.body.appendChild(s);
+          }
+          tryNext();
+        })();
 
         function mountWaline() {
           // ===== 头像策略：QQ 邮箱自动使用 QQ 头像，其他用国内可访问的头像服务 =====
-          function resolveAvatar(comment: any): string {
+          function resolveAvatar(comment) {
             const mail = (comment && comment.mail) || '';
             // 纯数字 QQ 邮箱 → QQ 官方头像
             const m = /^(\d{5,11})@qq\.com$/i.exec(mail.trim());
@@ -94,7 +122,8 @@ const anyEnabled = useWaline || useArtalk || useGiscus;
             return 'https://cravatar.cn/avatar/';
           }
 
-          new (window as any).Waline({
+          // ★ Waline v3 的 API 是 Waline.init()，不是 new Waline()
+          window.Waline.init({
             el: '#waline-container',
             serverURL: walineServer,
             path: pageKey,
@@ -108,38 +137,33 @@ const anyEnabled = useWaline || useArtalk || useGiscus;
             search: false,
           });
 
-          // ===== 注册/登录成功后跳转到首页（仅本次会话新登录时触发）=====
+          // ===== 注册/登录成功后切换到网站首页 =====
+          // 判断依据：Waline v3 把登录用户存在 localStorage 的 WALINE_USER 里
+          //   · 未登录 → "{}"（空对象）
+          //   · 已登录 → 含 token / nick 等信息的对象
           let jumped = false;
-          function isLoggedIn(): boolean {
-            const box = document.getElementById('waline-container');
-            if (box) {
-              const txt = box.textContent || '';
-              // Waline 登录后会出现「退出」/「登出」入口
-              if (/退出|登出|logout/i.test(txt)) return true;
-            }
+          function isLoggedIn() {
             try {
-              for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i) || '';
-                if (k.toLowerCase().indexOf('waline') >= 0) {
-                  const v = localStorage.getItem(k) || '';
-                  if (v.indexOf('token') >= 0) return true;
-                }
-              }
-            } catch (e) {}
-            return false;
+              const raw = localStorage.getItem('WALINE_USER');
+              if (!raw) return false;
+              const u = JSON.parse(raw);
+              if (!u || typeof u !== 'object') return false;
+              return !!(u.token || u.nick || u.email || Object.keys(u).length > 0);
+            } catch (e) {
+              return false;
+            }
           }
 
           const wasLoggedIn = isLoggedIn();
           const timer = window.setInterval(() => {
             if (jumped) return;
-            const now = isLoggedIn();
-            if (now && !wasLoggedIn) {
+            if (isLoggedIn() && !wasLoggedIn) {
               jumped = true;
               window.clearInterval(timer);
-              // 登录/注册成功后回到网站首页
+              // 注册 / 登录成功 → 切换到网站首页
               window.location.href = homeUrl;
             }
-          }, 800);
+          }, 700);
         }
       }
 
