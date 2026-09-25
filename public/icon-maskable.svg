@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="55%" stop-color="#7c3aed" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+  </defs>
+
+  <!-- maskable：背景铺满整格（圆角由系统按机型裁切） -->
+  <rect x="0" y="0" width="512" height="512" fill="url(#g)" />
+
+  <!-- 字母 Z 缩到安全区内（约 62%），避免被系统圆形/圆角裁掉 -->
+  <g transform="translate(256,256) scale(0.58) translate(-256,-256)">
+    <path
+      d="M 126 146 L 386 146 L 386 204 L 244 306 L 386 306 L 386 364 L 126 364 L 126 306 L 268 204 L 126 204 Z"
+      fill="#ffffff"
+    />
+  </g>
+</svg>

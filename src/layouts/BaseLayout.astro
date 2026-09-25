@@ -26,7 +26,7 @@ const isHome = Astro.url.pathname === '/';
 ---
 
 <!doctype html>
-<html lang={siteConfig.lang} data-theme="light">
+<html lang={siteConfig.lang} data-theme="light" data-base={withBase('/')}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -34,6 +34,29 @@ const isHome = Astro.url.pathname === '/';
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+
+    <!-- ========== PWA（可"添加到主屏幕"，像 App 一样用）========== -->
+    <link rel="manifest" href={withBase('/manifest.webmanifest')} />
+    <meta name="theme-color" content="#7c3aed" />
+    <!-- iOS 专用：加到主屏后全屏运行 -->
+    <link rel="apple-touch-icon" href={withBase('/icon-192.png')} />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content={siteConfig.shortName} />
+    <!-- App 模式检测：以独立窗口（PWA）打开时给 html 加 .app-mode -->
+    <script is:inline>
+      (function () {
+        try {
+          var standalone =
+            window.matchMedia('(display-mode: standalone)').matches ||
+            window.matchMedia('(display-mode: fullscreen)').matches ||
+            window.matchMedia('(display-mode: minimal-ui)').matches ||
+            window.navigator.standalone === true;
+          if (standalone) document.documentElement.classList.add('app-mode');
+        } catch (e) {}
+      })();
+    </script>
+
     <ViewTransitions />
     <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <link
@@ -79,6 +102,16 @@ const isHome = Astro.url.pathname === '/';
     </main>
     <Footer />
     <script>
+      // ============ 注册 Service Worker（PWA：可安装 + 离线访问） ============
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          const base = document.documentElement.dataset.base || '/';
+          navigator.serviceWorker.register(base + 'sw.js', { scope: base }).catch(() => {
+            /* 注册失败不影响正常浏览，静默忽略 */
+          });
+        });
+      }
+
       // 暗色模式切换（Header 按钮触发）
       document.addEventListener('click', (e) => {
         const btn = (e.target as HTMLElement).closest('[data-theme-toggle]');

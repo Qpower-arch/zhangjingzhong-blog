@@ -138,6 +138,22 @@
   cursor: none;
 }
 
+/* ============ PWA：App（独立窗口）模式下的调整 ============ */
+/* 以"添加到主屏幕"的 App 方式打开时，html 会带上 .app-mode
+   —— 此时隐藏「工具箱」入口，保持 App 体验更纯粹；
+      用浏览器网页访问时不受影响，工具箱照常显示 */
+.app-mode [data-app-hide] {
+  display: none !important;
+}
+/* App 模式下顶部导航留出状态栏空间 */
+.app-mode .site-header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+/* App 模式下页脚底部留出安全区（iPhone 底部横条） */
+.app-mode .site-footer {
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
 /* ============ 页面切换过渡（View Transitions） ============ */
 ::view-transition-old(root) {
   animation: vtFadeOut 0.3s var(--ease) both;

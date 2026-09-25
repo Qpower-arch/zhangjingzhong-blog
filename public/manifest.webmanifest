@@ -1,0 +1,58 @@
+{
+  "name": "张静中的博客",
+  "short_name": "张静中",
+  "description": "记录学习进度，分享软件资源与折腾心得。",
+  "lang": "zh-CN",
+  "start_url": "/zhangjingzhong-blog/",
+  "scope": "/zhangjingzhong-blog/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f8fc",
+  "theme_color": "#7c3aed",
+  "categories": ["education", "blog", "productivity"],
+  "icons": [
+    {
+      "src": "/zhangjingzhong-blog/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/zhangjingzhong-blog/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/zhangjingzhong-blog/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/zhangjingzhong-blog/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "文章",
+      "short_name": "文章",
+      "url": "/zhangjingzhong-blog/blog/",
+      "description": "查看全部文章"
+    },
+    {
+      "name": "学习进度",
+      "short_name": "进度",
+      "url": "/zhangjingzhong-blog/progress/",
+      "description": "查看学习进度时间线"
+    },
+    {
+      "name": "软件资源",
+      "short_name": "资源",
+      "url": "/zhangjingzhong-blog/resources/",
+      "description": "查看软件资源整理"
+    }
+  ]
+}
